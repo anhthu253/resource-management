@@ -1,0 +1,18 @@
+<div>
+    <h2>Your payment of {{bookingDto?.totalPrice | currency}} has been successfully procceeded</h2>
+    <div>
+        <p>Following is your booking summary</p>
+        <div>
+            <label>Resource</label>
+            <ul>
+                <li *ngFor="let resource of bookingDto?.resources">
+                    {{ resource }}
+                </li>
+            </ul>
+
+            <p>Started at: {{bookingDto?.startedAt | date:'dd/MM/yyyy HH:mm'}}</p>
+            <p>Ended at: {{bookingDto?.endedAt | date:'dd/MM/yyyy HH:mm'}}</p>
+        </div>
+        <p>Total price: {{bookingDto?.totalPrice | currency}}</p>
+    </div>
+</div>

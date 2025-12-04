@@ -1,14 +1,18 @@
 package com.example.springboot.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.time.LocalDate;
+
 @Entity
 @Table(name="booking")
+@Getter
+@Setter
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +24,16 @@ public class Booking {
     private User user;
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
-    private Long resourceId;
+    @ElementCollection
+    @CollectionTable(
+            name = "booking_resources",
+            joinColumns = @JoinColumn(name = "booking_id")
+    )
+    @Column(name = "resource_id")
+    private List<Long> resourceIds;
     @Enumerated(EnumType.STRING)
-    private Status status;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private BookingStatus status;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
     private BigDecimal totalPrice;
 }

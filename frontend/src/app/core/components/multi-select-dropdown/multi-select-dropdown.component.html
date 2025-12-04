@@ -1,0 +1,9 @@
+<mat-form-field>
+    <mat-label>{{label}}</mat-label>
+    <mat-select multiple (selectionChange)="onSelect($event)" [(value)]="value" [disabled]="disabled">
+        @for (option of options; track $index) {
+        <mat-option [value]="option.id">{{option.name}}</mat-option>
+        }
+    </mat-select>
+    <mat-hint align="start" class="select-error">{{error}}</mat-hint>
+</mat-form-field>

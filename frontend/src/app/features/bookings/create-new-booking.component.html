@@ -1,14 +1,37 @@
-<form>
-    <mat-form-field>
-        <mat-label>Resources</mat-label>
-        <mat-select [formControl]="resources" multiple>
-            @for (resource of resourceList; track resource) {
-            <mat-option [value]="resource">{{resource}}</mat-option>
-            }
-        </mat-select>
-    </mat-form-field>
-
-        <app-date-input [control]="startedAt" (dateChange)="onStartDateChange($event)"></app-date-input>
-        <app-date-input [control]="endedAt" (dateChange)="onEndDateChange($event)"></app-date-input>
-
+<form [formGroup]="bookingFormGroup">
+    <div [formGroup]="periodGroup">
+        <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
+        <app-date-picker dateLabel="Ended at" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
+    </div>
+    <app-multi-select 
+        label="Resources" 
+        [options]="resourceNormalizedList"
+        formControlName="resourceIds"
+    >
+    </app-multi-select>
+      
+    <div>
+        <label>Purpose </label>
+        <app-input type="text" formControlName="purpose"></app-input>
+    </div>
 </form>
+<div *ngIf="bookingFormGroup.valid">
+        <h2>Booking summary</h2>
+        <div>
+            <label>Resource</label>
+            <ul>
+                <li *ngFor="let selected of selectedResourceNames">
+                    {{ selected }}
+                </li>
+            </ul>
+        </div>
+        <div>
+            <p>Started at: {{periodGroup.get("startedAt")?.value | date:'dd/MM/yyyy HH:mm'}}</p>
+            <p>Ended at: {{periodGroup.get("endedAt")?.value | date:'dd/MM/yyyy HH:mm'}}</p>
+        </div>
+        <p>Total price: {{totalPrice | currency}}</p>
+    </div>
+    <p>
+        <button (click)="onCancelBooking()">Cancel</button>
+        <button *ngIf="bookingFormGroup.valid" (click)="toPayment()">Proceed to payment</button>
+    </p>

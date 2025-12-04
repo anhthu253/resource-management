@@ -1,0 +1,27 @@
+<div>
+    <mat-form-field class="example-full-width">
+        <mat-label>{{ dateLabel }}</mat-label>
+        <input
+            matInput
+            [matDatepicker]="datepicker"
+            [matDatepickerFilter]="filter"
+            [value]="dateValue"
+            (dateChange)="onDateChange($event.value)"
+            [disabled]="disabled"
+        />
+
+        <mat-hint align="start" class="input-error">{{error}}</mat-hint>
+        <mat-datepicker #datepicker/>
+        <mat-datepicker-toggle [for]="datepicker" matSuffix/>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>{{ timeLabel }}</mat-label>
+        <input matInput
+            matTimepickerInput
+            [matTimepicker]="timepicker"
+            [value]="timeValue"
+        >
+        <mat-timepicker #timepicker  (selected)="onTimeSelected($event)"/>
+        <mat-timepicker-toggle [for]="timepicker" matSuffix/>
+    </mat-form-field>
+</div>

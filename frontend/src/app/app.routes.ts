@@ -3,6 +3,8 @@ import { LoginComponent } from './features/auth/login.component';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { NewBookingComponent } from './features/bookings/create-new-booking.component';
+import { PaymentComponent } from './features/bookings/payment.components';
+import { BookingSummaryComponent } from './features/bookings/booking-summary-component';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -12,6 +14,8 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'new-booking', component: NewBookingComponent },
+      { path: 'payment', component: PaymentComponent },
+      { path: 'booking-summary', component: BookingSummaryComponent },
     ],
   },
 ];

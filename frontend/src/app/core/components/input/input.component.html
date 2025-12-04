@@ -1,0 +1,10 @@
+<mat-form-field class="example-full-width">
+    <mat-label>{{label}}</mat-label>
+    <input [type]="type" matInput 
+        [value]="value"
+        (input)="onValueChange($event)"
+        [placeholder]="placeholder"
+        >
+      <mat-hint align="start" class="input-error">{{error}}</mat-hint>
+
+</mat-form-field>

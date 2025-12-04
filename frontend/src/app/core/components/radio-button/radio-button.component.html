@@ -1,0 +1,11 @@
+<mat-radio-group
+  aria-labelledby="example-radio-group-label"
+  class="example-radio-group"
+  [selected]="value"
+  [disabled]="disabled"
+  (change)="onSelect($event)"
+  >
+  @for (option of options; track option) {
+    <mat-radio-button class="example-radio-button" [value]="option">{{option}}</mat-radio-button>
+  }
+</mat-radio-group>

@@ -1,14 +1,15 @@
 import { FormsModule } from '@angular/forms';
 import { Component } from '@angular/core';
-import { LoginService } from './login.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { UserService } from '../../core/services/user.service';
+import { UserDto } from '../../core/dtos/user.dto';
 @Component({
   standalone: true,
   selector: 'app-login',
   imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
-  providers: [LoginService],
 })
 export class LoginComponent {
   email = '';
@@ -16,13 +17,17 @@ export class LoginComponent {
   token: string | null = null;
   errorMessage: string | null = null;
 
-  constructor(private loginService: LoginService, private router: Router) {}
+  constructor(
+    private loginService: AuthService,
+    private userService: UserService,
+    private router: Router
+  ) {}
   onLogin = () => {
     if (this.email && this.password) {
       const data = { username: this.email, password: this.password };
-      this.loginService.getToken(data).subscribe({
+      this.loginService.login(data).subscribe({
         next: (res) => {
-          this.token = res;
+          this.userService.setUser(res);
           this.errorMessage = '';
           this.router.navigate(['/dashboard']);
         },
