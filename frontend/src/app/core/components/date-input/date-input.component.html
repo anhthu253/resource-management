@@ -1,0 +1,18 @@
+<mat-form-field class="example-full-width">
+    <mat-label>{{ label }}</mat-label>
+
+    <input
+        matInput
+        [matDatepicker]="picker"
+        [formControl]="control"
+        (dateChange)="onDateChange($event)"
+    />
+
+    <mat-hint>MM/DD/YYYY</mat-hint>
+
+    <mat-datepicker-toggle matIconSuffix [for]="picker">
+    <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
+    </mat-datepicker-toggle>
+
+    <mat-datepicker #picker></mat-datepicker>
+</mat-form-field>

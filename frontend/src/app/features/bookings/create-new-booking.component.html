@@ -1,0 +1,14 @@
+<form>
+    <mat-form-field>
+        <mat-label>Resources</mat-label>
+        <mat-select [formControl]="resources" multiple>
+            @for (resource of resourceList; track resource) {
+            <mat-option [value]="resource">{{resource}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+
+        <app-date-input [control]="startedAt" (dateChange)="onStartDateChange($event)"></app-date-input>
+        <app-date-input [control]="endedAt" (dateChange)="onEndDateChange($event)"></app-date-input>
+
+</form>
