@@ -1,0 +1,102 @@
+version: '3.9'
+
+services:
+  # Booking Service
+  booking-service:
+    build:
+      context: ./booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/bookingdb
+      SPRING_DATASOURCE_USERNAME: booking_user
+      SPRING_DATASOURCE_PASSWORD: booking_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - booking-db
+
+  booking-db:
+    image: postgres:17
+    container_name: booking-db
+    environment:
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_pass
+      POSTGRES_DB: bookingdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+
+  # Resource Service
+  resource-service:
+    build:
+      context: ./resource-service
+      dockerfile: Dockerfile
+    container_name: resource-service
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://resource-db:5432/resourcedb
+      SPRING_DATASOURCE_USERNAME: resource_user
+      SPRING_DATASOURCE_PASSWORD: resource_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - resource-db
+
+  resource-db:
+    image: postgres:17
+    container_name: resource-db
+    environment:
+      POSTGRES_USER: resource_user
+      POSTGRES_PASSWORD: resource_pass
+      POSTGRES_DB: resourcedb
+    ports:
+      - "5433:5432"
+    volumes:
+      - resource-db-data:/var/lib/postgresql/data
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8083:8080"
+    depends_on:
+      - booking-service
+      - resource-service
+
+  notification-db:
+    image: postgres:16
+    container_name: notification-db
+    restart: always
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_pass
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - booking-service
+      - resource-service
+
+volumes:
+  booking-db-data:
+  resource-db-data:
+  notification-db-data:
