@@ -27,41 +27,44 @@ public class MainController {
     private final BookingMapper bookingMapper;
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
+
     public MainController(BookingService bookingService, StripeService stripeService, BookingMapper bookingMapper) {
         this.bookingService = bookingService;
         this.stripeService = stripeService;
         this.bookingMapper = bookingMapper;
     }
+
     @PostMapping("/available-resources")
-    public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto){
+    public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
         return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);
     }
+
     @PostMapping("/create")
-    public ResponseEntity<BookingResponseDto> createBooking(@RequestBody BookingRequestDto bookingRequestDto){
+    public ResponseEntity<BookingResponseDto> createBooking(@RequestBody BookingRequestDto bookingRequestDto) {
         Booking bookingRequest = bookingMapper.mapBookingRequestToBookingEntity(bookingRequestDto);
         BookingResponseDto result = this.bookingService.createBooking(bookingRequest);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/current-booking/{bookingId}")
-    public ResponseEntity<BookingDto> getCurrentBooking(@PathVariable Long bookingId){
+    public ResponseEntity<BookingDto> getCurrentBooking(@PathVariable Long bookingId) {
         Booking booking = bookingService.getCurrentBooking(bookingId);
         return ResponseEntity.ok(bookingMapper.mapBookingToBookingDto(booking));
     }
 
     @PostMapping("/proceed-payment")
-    public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto){
-        try{
+    public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto) {
+        try {
             return bookingService.createPaymentIntent(paymentIntentDto);
-        }
-        catch (Exception ex){
-            return new ResponseEntity<>(ex.getMessage(),HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
         }
 
     }
+
     @PostMapping("/webhooks/stripe")
     public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload,
-                                                      @RequestHeader("Stripe-Signature") String sigHeader) {
+            @RequestHeader("Stripe-Signature") String sigHeader) {
         try {
             // Verify the signature
             Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
@@ -77,10 +80,10 @@ public class MainController {
                 if (rawJson != null) {
                     ObjectMapper mapper = new ObjectMapper();
                     try {
-                        PaymentIntentResponseDto paymentIntentResponseDto = mapper.readValue(rawJson, PaymentIntentResponseDto.class);
+                        PaymentIntentResponseDto paymentIntentResponseDto = mapper.readValue(rawJson,
+                                PaymentIntentResponseDto.class);
                         paymentIntentId = paymentIntentResponseDto.id();
-                    }
-                    catch(Exception ex){
+                    } catch (Exception ex) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid webhook payload");
                     }
                 }
@@ -94,10 +97,15 @@ public class MainController {
         }
     }
 
-   /* @PostMapping("/confirm")
-    ResponseEntity<BookingStatus> confirmBooking (@RequestBody BookingConfirmDto bookingConfirmDto){
-        Booking boookingConfirm = bookingRequestMapper.mapBookingRequestToBookingEntity(bookingConfirmDto);
-        BookingResponseDto result = this.bookingService.createBooking(boookingConfirm);
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }*/
+    /*
+     * @PostMapping("/confirm")
+     * ResponseEntity<BookingStatus> confirmBooking (@RequestBody BookingConfirmDto
+     * bookingConfirmDto){
+     * Booking boookingConfirm =
+     * bookingRequestMapper.mapBookingRequestToBookingEntity(bookingConfirmDto);
+     * BookingResponseDto result =
+     * this.bookingService.createBooking(boookingConfirm);
+     * return new ResponseEntity<>(result, HttpStatus.OK);
+     * }
+     */
 }

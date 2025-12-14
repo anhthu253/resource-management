@@ -15,5 +15,6 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b from Booking b where b.startedAt <= :ended and b.endedAt > :started and (b.status = BookingStatus.CONFIRMED or b.status = PENDING_CONFIRMATION )")
     List<Booking> getBookings(LocalDateTime started, LocalDateTime ended);
+
     Optional<Booking> findByPayment(Payment payment);
 }
