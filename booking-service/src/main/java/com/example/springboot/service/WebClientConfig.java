@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Setter
 public class WebClientConfig {
     private String url;
+
     @Bean("resourceWebClient")
     public WebClient resourceWebClient() {
         return WebClient.builder()

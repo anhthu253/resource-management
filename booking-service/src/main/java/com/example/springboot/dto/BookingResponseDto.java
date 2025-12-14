@@ -5,4 +5,5 @@ import com.example.springboot.model.PaymentStatus;
 
 import java.math.BigDecimal;
 
-public record BookingResponseDto (Long bookingId, Long paymentId, PaymentStatus paymentStatus){}
+public record BookingResponseDto(Long bookingId, Long paymentId, PaymentStatus paymentStatus) {
+}

@@ -27,11 +27,10 @@ public class BookingService {
     private final ResourceService resourceService;
 
     public BookingService(BookingRepository bookingRepository,
-                          PaymentRepository paymentRepository,
-                          @Qualifier("resourceWebClient") WebClient resourceWebClient,
-                          StripeService stripeService,
-                          ResourceService resourceService
-    ) {
+            PaymentRepository paymentRepository,
+            @Qualifier("resourceWebClient") WebClient resourceWebClient,
+            StripeService stripeService,
+            ResourceService resourceService) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.resourceWebClient = resourceWebClient;
@@ -46,9 +45,10 @@ public class BookingService {
         return new BookingResponseDto(booking.getBookingId(), payment.getPaymentId(), payment.getStatus());
     }
 
-    public Booking getCurrentBooking(Long bookingId){
+    public Booking getCurrentBooking(Long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow();
     }
+
     public ResponseEntity<String> createPaymentIntent(PaymentIntentDto paymentIntentDto) throws Exception {
         HttpResponse<String> paymentIntentResponse = stripeService.postPaymentIntents(paymentIntentDto);
         if (paymentIntentResponse.statusCode() == 200) {
@@ -62,7 +62,8 @@ public class BookingService {
             Booking booking = bookingRepository.findById(paymentIntentDto.getBookingId()).orElseThrow();
             booking.setStatus(BookingStatus.PAYMENT_PENDING);
             return new ResponseEntity<>(paymentIntent.client_secret(), HttpStatus.OK);
-        } else return new ResponseEntity<>("payment is not proceeded", HttpStatus.NOT_IMPLEMENTED);
+        } else
+            return new ResponseEntity<>("payment is not proceeded", HttpStatus.NOT_IMPLEMENTED);
     }
 
     public Payment createPayment(Booking booking) {
@@ -96,13 +97,16 @@ public class BookingService {
         }
         return booking.getStatus();
     }
+
     public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) {
         List<ResourceDto> allResource = resourceService.getAllResources().block();
-        List<Long> bookedResourceIds = this.bookingRepository.getBookings(bookingPeriodDto.startedAt(), bookingPeriodDto.endedAt())
+        List<Long> bookedResourceIds = this.bookingRepository
+                .getBookings(bookingPeriodDto.startedAt(), bookingPeriodDto.endedAt())
                 .stream().flatMap(booking -> booking.getResourceIds().stream())
                 .distinct()
                 .collect(Collectors.toList());
-        if(bookedResourceIds.size() == 0) return allResource;
+        if (bookedResourceIds.size() == 0)
+            return allResource;
         return allResource.stream()
                 .filter(resource -> !bookedResourceIds.contains(resource.getResourceId()))
                 .collect(Collectors.toList());

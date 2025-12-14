@@ -1,10 +1,12 @@
 package com.example.springboot.dto;
+
 import com.example.springboot.model.BookingStatus;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Getter
 public class BookingRequestDto {
     private List<Long> resourceIds;
