@@ -1,0 +1,9 @@
+.mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value {
+  background-color: #fafafa !important;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.select-error{
+    color:red;
+    font-size: 10pt;
+}

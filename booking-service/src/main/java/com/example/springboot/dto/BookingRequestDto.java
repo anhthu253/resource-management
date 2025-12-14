@@ -1,4 +1,5 @@
 package com.example.springboot.dto;
+import com.example.springboot.model.BookingStatus;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -10,5 +11,6 @@ public class BookingRequestDto {
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private String purpose;
+    private Long userId;
     private BigDecimal totalPrice;
 }

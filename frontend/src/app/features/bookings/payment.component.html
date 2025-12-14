@@ -1,0 +1,36 @@
+<h2>Select Payment Method</h2>
+<app-radio-button
+    [options]="paymentMethods"
+    [formControl] = "selectedMethod"
+></app-radio-button>
+<div *ngIf="selectedMethod.value && selectedMethod.value !== 'Paypal'" [formGroup]="cardDetails">
+    <div>
+        <label>Card number: </label>
+        <app-input
+            type="text"
+            formControlName="cardNumber"
+        ></app-input>
+    </div>
+    <div>
+        <label>Expires on: </label>
+        <app-input
+            type="month"
+            formControlName="expiredDate"
+        ></app-input>
+    </div>
+    <div>
+        <label>CVV: </label>
+        <app-input
+            type="text"
+            formControlName="cvv"
+        ></app-input>
+    </div>
+    <div>
+        <label>Name on card: </label>
+        <app-input
+            type="text"
+            formControlName="accountHolder"
+        ></app-input>
+    </div>
+</div>
+

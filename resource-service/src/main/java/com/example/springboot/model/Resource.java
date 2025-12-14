@@ -12,11 +12,12 @@ import java.util.UUID;
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long resourceId;
-        private Long bookingId;
         private String name;
         private String type;
         private String description;
         private int capacity;
         private double basePrice;
+        @Enumerated(EnumType.STRING)
+        private PriceUnit priceUnit;
         private String metadata;
     }
