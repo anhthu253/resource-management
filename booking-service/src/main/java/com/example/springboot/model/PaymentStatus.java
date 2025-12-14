@@ -1,7 +1,8 @@
 package com.example.springboot.model;
 
-public enum Status {
+public enum PaymentStatus {
     PENDING,
     COMPLETE,
-    FAILED
+    FAILED,
+    REFUNDED
 }
