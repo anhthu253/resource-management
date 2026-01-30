@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name="payment")
+@Table(name = "payment")
 @Setter
 @Getter
 public class Payment {
@@ -16,7 +16,7 @@ public class Payment {
     private Long paymentId;
     private String paymentIntentId;
     @OneToOne
-    @JoinColumn(name="booking_id")
+    @JoinColumn(name = "booking_id")
     private Booking booking;
     private BigDecimal amount;
     private Currency currency;
