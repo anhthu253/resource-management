@@ -1,10 +1,10 @@
 <h2>Select Payment Method</h2>
 <app-radio-button
-    [options]="paymentMethods"
-    [formControl] = "selectedMethod"
+    [options]="paymentBrands"
+    [formControl] = "selectedBrand"
 ></app-radio-button>
 
-<div [hidden]="!selectedMethod.value || selectedMethod.value === 'Paypal'">
+<div [hidden]="!selectedBrand.value || selectedBrand.value === 'Paypal'">
     <div id="card-number-container">
     <label>Card Number</label>
     <div id="card-number"></div>
@@ -19,34 +19,14 @@
     <label>CVC</label>
     <div id="card-cvc"></div>
   </div>
+  <p>{{cardWarningMessage}}</p>
   <button type="submit" (click)="pay()">Pay</button>
-    <!-- <div>
-        <label>Card number: </label>
-        <app-input
-            type="text"
-            formControlName="cardNumber"
-        ></app-input>
-    </div>
-    <div>
-        <label>Expires on: </label>
-        <app-input
-            type="month"
-            formControlName="expiredDate"
-        ></app-input>
-    </div>
-    <div>
-        <label>CVV: </label>
-        <app-input
-            type="text"
-            formControlName="cvv"
-        ></app-input>
-    </div>
-    <div>
-        <label>Name on card: </label>
-        <app-input
-            type="text"
-            formControlName="accountHolder"
-        ></app-input>
-    </div> -->
+  <p class="error">{{cardNumberError}}</p>
+  <p class="error">{{cardExpiryError}}</p>
+  <p class="error">{{failPaymentmessage}}</p>
+  <app-popup *ngIf="isPaymentFailed" 
+    title="Payment failed!" 
+    content="Your payment is not successfully proceeded. Please try again"
+    (close)="isPaymentFailed=false"></app-popup>
 </div>
 

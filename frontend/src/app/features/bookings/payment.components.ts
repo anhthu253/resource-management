@@ -1,17 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RadioButton } from '../../core/components/radio-button/radio-button.component';
-import { MatInput } from '../../core/components/input/input.component';
-import { ValidationService } from '../../core/services/validation.service';
-import { StripeService } from '../../core/services/stripe.service';
 import {
   loadStripe,
   Stripe,
@@ -20,29 +16,34 @@ import {
   StripeCardNumberElement,
 } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
-import {
-  PaymentIntentDto,
-  BookingRequestDto,
-  BookingResponseDto,
-} from '../../core/dtos/booking.dto';
-import { ActivatedRoute, Route, Router } from '@angular/router';
+import { PaymentIntentDto } from '../../core/dtos/booking.dto';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
+import { Popup } from '../../core/components/pop-up/pop-up.component';
 
 @Component({
   standalone: true,
   selector: 'app-payment',
   templateUrl: './payment.component.html',
-  imports: [ReactiveFormsModule, CommonModule, RadioButton, MatInput],
+  styleUrl: './payment.component.css',
+  imports: [ReactiveFormsModule, CommonModule, RadioButton, Popup],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentComponent implements OnInit, AfterViewInit {
-  paymentMethods = ['Visa', 'Mastercard', 'Paypal'];
-  selectedMethod = new FormControl<string>('');
-  error? = '';
+  paymentBrands = ['Visa', 'Mastercard', 'Paypal'];
+  selectedBrand = new FormControl<string>('');
+  detectedBrand = 'unknown';
+  cardWarningMessage = '';
   paymentIntent: PaymentIntentDto = {
     bookingId: -1,
     paymentId: -1,
     paymentMethodId: '',
   };
+
+  cardNumberError? = '';
+  cardExpiryError? = '';
+  isPaymentFailed: boolean = false;
+  failPaymentmessage? = '';
 
   private stripe!: Stripe;
   private cardNumber!: StripeCardNumberElement;
@@ -52,7 +53,8 @@ export class PaymentComponent implements OnInit, AfterViewInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private bookingService: BookingService
+    private bookingService: BookingService,
+    private changeDetector: ChangeDetectorRef
   ) {}
 
   async ngAfterViewInit() {
@@ -69,6 +71,33 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     this.cardNumber.mount('#card-number');
     this.cardExpiry.mount('#card-expiry');
     this.cardCvc.mount('#card-cvc');
+
+    this.cardNumber.on('change', (event) => {
+      this.cardNumberError = event.error?.message;
+      this.detectedBrand = event.brand;
+      this.checkBrandMismatch();
+      this.changeDetector.markForCheck();
+    });
+
+    this.selectedBrand.valueChanges.subscribe(() => this.checkBrandMismatch());
+
+    this.cardExpiry.on('change', (event) => {
+      this.cardExpiryError = event.error?.message;
+      this.changeDetector.markForCheck();
+    });
+  }
+  private checkBrandMismatch() {
+    const selectedBrand = this.selectedBrand.value?.toLowerCase();
+    if (
+      selectedBrand &&
+      this.detectedBrand &&
+      this.detectedBrand !== 'unknown' &&
+      this.detectedBrand !== selectedBrand
+    ) {
+      this.cardWarningMessage = `You selected ${selectedBrand} but entered a ${this.detectedBrand} card.`;
+    } else {
+      this.cardWarningMessage = '';
+    }
   }
   ngOnInit() {}
   async pay() {
@@ -78,8 +107,6 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     });
 
     if (error) {
-      this.error = error.message;
-      console.log('error', this.error);
       return;
     }
     this.paymentIntent.bookingId = this.route.snapshot.params['bookingId'];
@@ -89,17 +116,17 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
       next: async (res) => {
         const result = await this.stripe.confirmCardPayment(res);
-        if (result.paymentIntent?.status === 'succeeded')
+        if (result.paymentIntent?.status === 'succeeded') {
           this.router.navigate(
             ['../booking-summary', { bookingId: this.paymentIntent.bookingId }],
             {
               relativeTo: this.route,
             }
           );
-        else console.log('Your payment has not been proceeded. Please try again!');
+        } else this.isPaymentFailed = true;
       },
       error: (err) => {
-        console.log('error creating payment intent', err);
+        this.failPaymentmessage = err;
       },
     });
   }
