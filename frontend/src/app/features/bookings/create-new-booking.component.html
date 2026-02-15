@@ -31,7 +31,7 @@
         </div>
         <p>Total price: {{totalPrice | currency}}</p>
     </div>
-    <p>
-        <button (click)="onCancelBooking()">Cancel</button>
-        <button *ngIf="bookingFormGroup.valid" (click)="toPayment()">Proceed to payment</button>
-    </p>
+    <div class="btn-row"b>
+        <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
+        <button *ngIf="bookingFormGroup.valid" mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>
+    </div>

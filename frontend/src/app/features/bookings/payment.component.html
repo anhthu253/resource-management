@@ -20,7 +20,7 @@
     <div id="card-cvc"></div>
   </div>
   <p>{{cardWarningMessage}}</p>
-  <button type="submit" (click)="pay()">Pay</button>
+  <button mat-raised-button color="primary" (click)="pay()">Pay</button>
   <p class="error">{{cardNumberError}}</p>
   <p class="error">{{cardExpiryError}}</p>
   <p class="error">{{failPaymentmessage}}</p>

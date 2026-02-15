@@ -21,12 +21,20 @@ import { startWith, take } from 'rxjs';
 import { BookingRequestDto } from '../../core/dtos/booking.dto';
 import { ValidationService } from '../../core/services/validation.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 @Component({
   standalone: true,
   selector: 'app-new-booking',
   templateUrl: './create-new-booking.component.html',
   styleUrl: './create-new-booking.component.css',
-  imports: [ReactiveFormsModule, CommonModule, DatePicker, MultipleSelection, MatInput],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    DatePicker,
+    MultipleSelection,
+    MatInput,
+    MatButtonModule,
+  ],
 })
 export class NewBookingComponent implements OnInit {
   resourceList: ResourceResponseDto[] = [];
@@ -45,7 +53,7 @@ export class NewBookingComponent implements OnInit {
     private userService: UserService,
     private validationService: ValidationService,
     private fb: FormBuilder,
-    private cf: ChangeDetectorRef
+    private cf: ChangeDetectorRef,
   ) {
     this.bookingFormGroup = fb.group(
       {
@@ -54,12 +62,12 @@ export class NewBookingComponent implements OnInit {
             startedAt: [null],
             endedAt: [null],
           },
-          { validators: validationService.dateRangeValidator }
+          { validators: validationService.dateRangeValidator },
         ),
         resourceIds: [[]],
         purpose: [null],
       },
-      { validators: validationService.bookingFormValidation }
+      { validators: validationService.bookingFormValidation },
     );
   }
   get periodGroup(): FormGroup {

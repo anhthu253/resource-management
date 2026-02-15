@@ -20,13 +20,14 @@ import { PaymentIntentDto } from '../../core/dtos/booking.dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { Popup } from '../../core/components/pop-up/pop-up.component';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   standalone: true,
   selector: 'app-payment',
   templateUrl: './payment.component.html',
   styleUrl: './payment.component.css',
-  imports: [ReactiveFormsModule, CommonModule, RadioButton, Popup],
+  imports: [ReactiveFormsModule, CommonModule, RadioButton, Popup, MatButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentComponent implements OnInit, AfterViewInit {
@@ -54,7 +55,7 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
-    private changeDetector: ChangeDetectorRef
+    private changeDetector: ChangeDetectorRef,
   ) {}
 
   async ngAfterViewInit() {
@@ -121,7 +122,7 @@ export class PaymentComponent implements OnInit, AfterViewInit {
             ['../booking-summary', { bookingId: this.paymentIntent.bookingId }],
             {
               relativeTo: this.route,
-            }
+            },
           );
         } else this.isPaymentFailed = true;
       },
