@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
-import { ActivatedRoute } from '@angular/router';
+import { BookingStateService } from '../../core/services/booking.state.service';
 @Component({
   standalone: true,
   selector: 'app-booking-summary',
@@ -21,17 +21,19 @@ export class BookingSummaryComponent implements OnInit {
   bookingDto: BookingDto | null = null;
   constructor(
     private bookingService: BookingService,
-    private route: ActivatedRoute,
-    private changeDetector: ChangeDetectorRef
+    private bookingStateService: BookingStateService,
+    private changeDetector: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
-    const bookingId = this.route.snapshot.params['bookingId'];
-    this.bookingService.getCurrentBooking(bookingId).subscribe({
-      next: (res) => {
-        this.bookingDto = res;
-        this.changeDetector.markForCheck();
-      },
-      error: (err) => console.log('error getting current booking'),
+    this.bookingStateService.bookingData$.subscribe((data) => {
+      if (!data) return;
+      this.bookingService.getCurrentBooking(data.bookingId).subscribe({
+        next: (res) => {
+          this.bookingDto = res;
+          this.changeDetector.markForCheck();
+        },
+        error: (err) => console.log('error getting current booking'),
+      });
     });
   }
 }

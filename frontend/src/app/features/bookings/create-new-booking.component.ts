@@ -22,6 +22,7 @@ import { BookingRequestDto } from '../../core/dtos/booking.dto';
 import { ValidationService } from '../../core/services/validation.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { BookingStateService } from '../../core/services/booking.state.service';
 @Component({
   standalone: true,
   selector: 'app-new-booking',
@@ -51,6 +52,7 @@ export class NewBookingComponent implements OnInit {
     private route: ActivatedRoute,
     private bookingService: BookingService,
     private userService: UserService,
+    private bookingStateService: BookingStateService,
     private validationService: ValidationService,
     private fb: FormBuilder,
     private cf: ChangeDetectorRef,
@@ -145,7 +147,8 @@ export class NewBookingComponent implements OnInit {
 
       this.bookingService.createBooking(postData).subscribe({
         next: (res) => {
-          this.router.navigate(['../payment', res], {
+          this.bookingStateService.set(res);
+          this.router.navigate(['../payment'], {
             relativeTo: this.route,
           });
         },

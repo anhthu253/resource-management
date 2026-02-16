@@ -58,7 +58,7 @@ export class LoginComponent {
         next: (res) => {
           this.userService.setUser(res);
           this.errorMessage = '';
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/new-booking']);
         },
         error: (err) => {
           this.errorMessage = err.message || 'Login failed';

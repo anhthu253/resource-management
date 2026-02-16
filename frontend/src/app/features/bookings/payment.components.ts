@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { Popup } from '../../core/components/pop-up/pop-up.component';
 import { MatButton } from '@angular/material/button';
+import { BookingStateService } from '../../core/services/booking.state.service';
 
 @Component({
   standalone: true,
@@ -55,6 +56,7 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
+    private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
   ) {}
 
@@ -110,25 +112,26 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     if (error) {
       return;
     }
-    this.paymentIntent.bookingId = this.route.snapshot.params['bookingId'];
-    this.paymentIntent.paymentId = this.route.snapshot.params['paymentId'];
-    this.paymentIntent.paymentMethodId = paymentMethod?.id;
+    const bookingData = null;
+    this.bookingStateService.bookingData$.subscribe((data) => {
+      if (!data) return;
+      this.paymentIntent.bookingId = data?.bookingId;
+      this.paymentIntent.paymentId = data.paymentId;
+      this.paymentIntent.paymentMethodId = paymentMethod?.id;
 
-    this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
-      next: async (res) => {
-        const result = await this.stripe.confirmCardPayment(res);
-        if (result.paymentIntent?.status === 'succeeded') {
-          this.router.navigate(
-            ['../booking-summary', { bookingId: this.paymentIntent.bookingId }],
-            {
+      this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
+        next: async (res) => {
+          const result = await this.stripe.confirmCardPayment(res);
+          if (result.paymentIntent?.status === 'succeeded') {
+            this.router.navigate(['../booking-summary'], {
               relativeTo: this.route,
-            },
-          );
-        } else this.isPaymentFailed = true;
-      },
-      error: (err) => {
-        this.failPaymentmessage = err;
-      },
+            });
+          } else this.isPaymentFailed = true;
+        },
+        error: (err) => {
+          this.failPaymentmessage = err;
+        },
+      });
     });
   }
 }
