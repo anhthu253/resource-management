@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @Getter
 public class BookingDto {
+    private Long bookingId;
     private List<String> resources;
     @Enumerated(EnumType.STRING)
     private BookingStatus status;

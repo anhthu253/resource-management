@@ -14,6 +14,7 @@ export interface BookingResponseDto {
 }
 
 export interface BookingDto {
+  bookingId: number;
   status: string;
   startedAt: Date | null;
   endedAt: Date | null;

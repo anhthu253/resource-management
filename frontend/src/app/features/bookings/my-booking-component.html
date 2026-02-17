@@ -1,0 +1,20 @@
+<mat-spinner *ngIf="myBookings.length === 0"></mat-spinner>
+<mat-card *ngFor="let booking of myBookings; let i = index" class="booking-card">
+  <mat-card-title>
+    <span>Booking {{ i + 1 }}</span>
+    <mat-icon (click)="cancelBooking(booking.bookingId)">unsubscribe</mat-icon>
+    <mat-icon>edit</mat-icon>
+  </mat-card-title>
+
+  <mat-card-content>
+    <div class="resources">
+      <div *ngFor="let resource of booking.resources">
+        {{ resource }}
+      </div>
+    </div>
+
+    <div class="dates">
+      from {{ booking.startedAt | date:'dd/MM/yyyy HH:mm' }} to {{ booking.endedAt| date:'dd/MM/yyyy HH:mm' }}
+    </div>
+  </mat-card-content>
+</mat-card>

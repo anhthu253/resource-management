@@ -116,4 +116,12 @@ public class BookingService {
         return resourceService.getAllResources().block();
     }
 
+    public List<Booking> getMyBookings(long userId){
+        return bookingRepository.getBookingsByUserId(userId);
+    }
+
+    public int cancelBooking(long bookingId){
+        return this.bookingRepository.cancelBookingById(bookingId);
+    }
+
 }

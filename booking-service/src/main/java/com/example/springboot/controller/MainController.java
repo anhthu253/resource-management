@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/booking")
@@ -37,6 +39,12 @@ public class MainController {
     public ResponseEntity<List<ResourceDto>> getAllResources() {
         return new ResponseEntity<>(this.bookingService.getAllResources(), HttpStatus.OK);
     }
+
+    @GetMapping("/my-bookings/{userId}")
+    public ResponseEntity<List<BookingDto>> getAllResources(@PathVariable Long userId) {
+        var myBookings = this.bookingService.getMyBookings(userId);
+        return new ResponseEntity<>(this.bookingMapper.mapBookingListToBookingDtoList(myBookings), HttpStatus.OK);
+    }
     @PostMapping("/available-resources")
     public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
         return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);
@@ -55,6 +63,12 @@ public class MainController {
         return ResponseEntity.ok(bookingMapper.mapBookingToBookingDto(booking));
     }
 
+    @GetMapping("/cancel-booking/{bookingId}")
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId) {
+        if(bookingService.cancelBooking(bookingId) == 0)
+            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
     @PostMapping("/proceed-payment")
     public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto) {
         try {

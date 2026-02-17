@@ -22,7 +22,6 @@ public class BookingMapper {
     }
 
     public Booking mapBookingRequestToBookingEntity(BookingRequestDto bookingRequest){
-
             Booking booking = new Booking();
             booking.setResourceIds(bookingRequest.getResourceIds());
             booking.setStartedAt(bookingRequest.getStartedAt());
@@ -36,6 +35,7 @@ public class BookingMapper {
     public BookingDto mapBookingToBookingDto(Booking booking){
         List<ResourceDto> allResource = resourceService.getAllResources().block();
         var bookingDto = new BookingDto();
+        bookingDto.setBookingId(booking.getBookingId());
         bookingDto.setStatus(booking.getStatus());
         bookingDto.setStartedAt(booking.getStartedAt());
         bookingDto.setEndedAt(booking.getEndedAt());
@@ -43,5 +43,9 @@ public class BookingMapper {
         List<String> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).map(r -> r.getResourceName()).collect(Collectors.toList());
         bookingDto.setResources(resources);
         return bookingDto;
+    }
+
+    public List<BookingDto> mapBookingListToBookingDtoList(List<Booking> bookings){
+        return bookings.stream().map(booking -> mapBookingToBookingDto(booking)).collect(Collectors.toList());
     }
 }
