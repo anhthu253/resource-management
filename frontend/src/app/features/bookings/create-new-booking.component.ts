@@ -108,7 +108,7 @@ export class NewBookingComponent implements OnInit {
   fetchResources = () => {
     const startedAt = this.periodGroup.get('startedAt')?.value;
     const endedAt = this.periodGroup.get('endedAt')?.value;
-    this.bookingService.getResources(startedAt, endedAt).subscribe({
+    this.bookingService.getAvailableResources(startedAt, endedAt).subscribe({
       next: (res) => {
         this.resourceList = res;
         this.resourceNormalizedList = res.map((entry) => {

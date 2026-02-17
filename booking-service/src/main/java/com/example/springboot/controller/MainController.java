@@ -33,7 +33,10 @@ public class MainController {
         this.stripeService = stripeService;
         this.bookingMapper = bookingMapper;
     }
-
+    @GetMapping("/all-resources")
+    public ResponseEntity<List<ResourceDto>> getAllResources() {
+        return new ResponseEntity<>(this.bookingService.getAllResources(), HttpStatus.OK);
+    }
     @PostMapping("/available-resources")
     public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
         return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);

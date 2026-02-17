@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Resource } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { ResourceResponseDto } from '../dtos/resource.dto';
 import {
@@ -16,11 +16,17 @@ import { PaymentIntent } from '@stripe/stripe-js';
 })
 export class BookingService {
   constructor(private http: HttpClient) {}
-  getResources = (startedAt: Date, endedAt: Date): Observable<ResourceResponseDto[]> => {
+
+  getAllResources = (): Observable<ResourceResponseDto[]> => {
+    return this.http.get<ResourceResponseDto[]>('http://localhost:8080/booking/all-resources', {
+      withCredentials: true,
+    });
+  };
+  getAvailableResources = (startedAt: Date, endedAt: Date): Observable<ResourceResponseDto[]> => {
     return this.http.post<ResourceResponseDto[]>(
       'http://localhost:8080/booking/available-resources',
       { startedAt, endedAt },
-      { withCredentials: true }
+      { withCredentials: true },
     );
   };
 
@@ -30,7 +36,7 @@ export class BookingService {
       bookingRequest,
       {
         withCredentials: true,
-      }
+      },
     );
   };
 

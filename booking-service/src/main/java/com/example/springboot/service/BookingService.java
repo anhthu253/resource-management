@@ -99,7 +99,7 @@ public class BookingService {
     }
 
     public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) {
-        List<ResourceDto> allResource = resourceService.getAllResources().block();
+        List<ResourceDto> allResource = getAllResources();
         List<Long> bookedResourceIds = this.bookingRepository
                 .getBookings(bookingPeriodDto.startedAt(), bookingPeriodDto.endedAt())
                 .stream().flatMap(booking -> booking.getResourceIds().stream())
@@ -110,6 +110,10 @@ public class BookingService {
         return allResource.stream()
                 .filter(resource -> !bookedResourceIds.contains(resource.getResourceId()))
                 .collect(Collectors.toList());
+    }
+
+    public List<ResourceDto> getAllResources(){
+        return resourceService.getAllResources().block();
     }
 
 }
