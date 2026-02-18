@@ -9,13 +9,13 @@ import { MyBookingComponent } from './features/bookings/my-booking-component';
 import { ResourcesComponent } from './features/bookings/resources-component';
 import { PaymentGuard } from './core/services/payment.service';
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
   {
     path: '',
     component: MainLayoutComponent,
     children: [
       // { path: 'dashboard', component: DashboardComponent },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+      { path: 'login', component: LoginComponent },
       { path: 'new-booking', component: NewBookingComponent },
       { path: 'payment', component: PaymentComponent, canActivate: [PaymentGuard] },
       { path: 'booking-summary', component: BookingSummaryComponent },

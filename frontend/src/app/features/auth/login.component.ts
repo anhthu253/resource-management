@@ -47,8 +47,6 @@ export class LoginComponent {
     );
   }
   onLogin = () => {
-    console.log('login form', this.loginForm);
-    console.log('is login form valid', this.loginForm.valid);
     if (this.loginForm.valid) {
       const data = {
         username: this.loginForm.get('email')?.value,

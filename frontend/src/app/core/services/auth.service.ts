@@ -11,6 +11,15 @@ export class AuthService {
       withCredentials: true,
     });
   }
+  logout(): Observable<void> {
+    return this.http.post<void>(
+      'http://localhost:8080/auth/logout',
+      {},
+      {
+        withCredentials: true,
+      },
+    );
+  }
   getCurrentUser(): Observable<UserDto> {
     return this.http.get<UserDto>('http://localhost:8080/auth/current-user', {
       withCredentials: true,

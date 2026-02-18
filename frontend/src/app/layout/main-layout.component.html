@@ -1,5 +1,5 @@
-<app-header></app-header>
-<app-menu></app-menu>
+<app-header [isLogin]="isLogin"></app-header>
+<app-menu *ngIf="isLogin"></app-menu>
 
 <div class="content">
   <router-outlet></router-outlet>
