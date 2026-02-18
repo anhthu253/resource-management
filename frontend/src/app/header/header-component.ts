@@ -1,9 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
+import { MatButton } from '@angular/material/button';
+import { Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { UserService } from '../core/services/user.service';
-import { Route, Router } from '@angular/router';
-import { MatButton } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
 @Component({
   standalone: true,
   selector: 'app-header',

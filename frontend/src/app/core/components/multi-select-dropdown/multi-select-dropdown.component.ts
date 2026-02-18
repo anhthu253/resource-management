@@ -1,27 +1,9 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  forwardRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  Self,
-} from '@angular/core';
-import {
-  AbstractControl,
-  ControlValueAccessor,
-  FormControl,
-  NG_VALUE_ACCESSOR,
-  NgControl,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Self } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { Subscription } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   standalone: true,
@@ -40,7 +22,10 @@ export class MultipleSelection implements ControlValueAccessor, OnInit, OnDestro
   disabled: boolean = false;
   private sub?: Subscription;
 
-  constructor(@Self() public ngControl: NgControl, private cd: ChangeDetectorRef) {
+  constructor(
+    @Self() public ngControl: NgControl,
+    private cd: ChangeDetectorRef,
+  ) {
     this.ngControl.valueAccessor = this;
   }
 

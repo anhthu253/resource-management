@@ -1,21 +1,5 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  forwardRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  Self,
-} from '@angular/core';
-import {
-  AbstractControl,
-  ControlValueAccessor,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  NgControl,
-  ValidationErrors,
-  Validator,
-} from '@angular/forms';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Self } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Subscription } from 'rxjs';
@@ -40,7 +24,10 @@ export class MatInput implements ControlValueAccessor, OnInit, OnDestroy {
 
   onChange = (val: any) => {};
   onTouched = () => {};
-  constructor(private cdr: ChangeDetectorRef, @Self() public ngControl: NgControl) {
+  constructor(
+    private cdr: ChangeDetectorRef,
+    @Self() public ngControl: NgControl,
+  ) {
     this.ngControl.valueAccessor = this;
   }
   ngOnInit() {

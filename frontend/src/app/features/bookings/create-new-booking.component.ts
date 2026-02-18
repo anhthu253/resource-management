@@ -1,41 +1,24 @@
 import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MultipleSelection } from '../../core/components/multi-select-dropdown/multi-select-dropdown.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BookingService } from '../../core/services/booking.service';
-import { ResourceResponseDto } from '../../core/dtos/resource.dto';
-import { DatePicker } from '../../core/components/date-picker/date-picker.component';
-import { MatInput } from '../../core/components/input/input.component';
-import { UserService } from '../../core/services/user.service';
-import { UserDto } from '../../core/dtos/user.dto';
-import { startWith, take } from 'rxjs';
-import { BookingRequestDto } from '../../core/dtos/booking.dto';
-import { ValidationService } from '../../core/services/validation.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs';
+import { DatePicker } from '../../core/components/date-picker/date-picker.component';
+import { MultipleSelection } from '../../core/components/multi-select-dropdown/multi-select-dropdown.component';
+import { ResourceResponseDto } from '../../core/dtos/resource.dto';
+import { BookingService } from '../../core/services/booking.service';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { UserService } from '../../core/services/user.service';
+import { ValidationService } from '../../core/services/validation.service';
 @Component({
   standalone: true,
   selector: 'app-new-booking',
   templateUrl: './create-new-booking.component.html',
   styleUrl: './create-new-booking.component.css',
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    DatePicker,
-    MultipleSelection,
-    MatInput,
-    MatButtonModule,
-  ],
+  imports: [ReactiveFormsModule, CommonModule, DatePicker, MultipleSelection, MatButtonModule],
 })
 export class NewBookingComponent implements OnInit {
   resourceList: ResourceResponseDto[] = [];

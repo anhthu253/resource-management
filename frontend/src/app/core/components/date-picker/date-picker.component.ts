@@ -1,12 +1,13 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Self } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { MatNativeDateModule } from '@angular/material/core';
+import {
+  DateFilterFn,
+  MatDatepickerModule,
+  MatDatepickerToggle,
+} from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { DateFilterFn, MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDatepickerToggle } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { NgControl } from '@angular/forms';
-import { ControlValueAccessor } from '@angular/forms';
-import { distinctUntilChanged } from 'rxjs/operators';
 import {
   MatTimepickerModule,
   MatTimepickerSelected,
@@ -43,7 +44,10 @@ export class DatePicker implements ControlValueAccessor, OnInit, OnDestroy {
   private onChange = (date: Date | null) => {};
   private onTouched = () => {};
 
-  constructor(private cd: ChangeDetectorRef, @Self() public ngControl: NgControl) {
+  constructor(
+    private cd: ChangeDetectorRef,
+    @Self() public ngControl: NgControl,
+  ) {
     this.ngControl.valueAccessor = this;
   }
 

@@ -1,19 +1,11 @@
-import {
-  FormBuilder,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { Component } from '@angular/core';
-import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { UserService } from '../../core/services/user.service';
-import { UserDto } from '../../core/dtos/user.dto';
-import { MatInput } from '../../core/components/input/input.component';
-import { validate } from '@angular/forms/signals';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { Router } from '@angular/router';
+import { MatInput } from '../../core/components/input/input.component';
+import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../core/services/user.service';
 @Component({
   standalone: true,
   selector: 'app-login',

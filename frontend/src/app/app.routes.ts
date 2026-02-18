@@ -1,13 +1,12 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './features/auth/login.component';
-import { MainLayoutComponent } from './layout/main-layout.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { NewBookingComponent } from './features/bookings/create-new-booking.component';
-import { PaymentComponent } from './features/bookings/payment.components';
-import { BookingSummaryComponent } from './features/bookings/booking-summary-component';
-import { MyBookingComponent } from './features/bookings/my-booking-component';
-import { ResourcesComponent } from './features/bookings/resources-component';
 import { PaymentGuard } from './core/services/payment.service';
+import { LoginComponent } from './features/auth/login.component';
+import { BookingSummaryComponent } from './features/bookings/booking-summary-component';
+import { NewBookingComponent } from './features/bookings/create-new-booking.component';
+import { MyBookingComponent } from './features/bookings/my-booking-component';
+import { PaymentComponent } from './features/bookings/payment.components';
+import { ResourcesComponent } from './features/bookings/resources-component';
+import { MainLayoutComponent } from './layout/main-layout.component';
 export const routes: Routes = [
   {
     path: '',
