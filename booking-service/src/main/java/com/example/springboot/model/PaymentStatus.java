@@ -5,5 +5,8 @@ public enum PaymentStatus {
     PROCESSING,
     SUCCEEDED_PENDING_WEBHOOK,
     SUCCEEDED,
-    FAILED
+    FAILED,
+    REFUNDED,
+    REFUND_PENDING,
+    REFUND_FAILED
 }

@@ -15,10 +15,12 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
     private String paymentIntentId;
+    private String chargeId;
     @OneToOne
     @JoinColumn(name = "booking_id")
     private Booking booking;
     private BigDecimal amount;
+    private Long refundedAmount;
     private Currency currency;
     private String provider;
     @Enumerated(EnumType.STRING)
