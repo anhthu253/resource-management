@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ResourceResponseDto } from '../dtos/resource.dto';
+import { ResourceDto } from '../dtos/resource.dto';
 import {
   BookingDto,
   BookingRequestDto,
@@ -15,14 +15,14 @@ import { Observable } from 'rxjs/internal/Observable';
 export class BookingService {
   constructor(private http: HttpClient) {}
 
-  getAllResources = (): Observable<ResourceResponseDto[]> => {
-    return this.http.get<ResourceResponseDto[]>('http://localhost:8080/booking/all-resources', {
+  getAllResources = (): Observable<ResourceDto[]> => {
+    return this.http.get<ResourceDto[]>('http://localhost:8080/booking/all-resources', {
       withCredentials: true,
     });
   };
 
-  getAvailableResources = (startedAt: Date, endedAt: Date): Observable<ResourceResponseDto[]> => {
-    return this.http.post<ResourceResponseDto[]>(
+  getAvailableResources = (startedAt: Date, endedAt: Date): Observable<ResourceDto[]> => {
+    return this.http.post<ResourceDto[]>(
       'http://localhost:8080/booking/available-resources',
       { startedAt, endedAt },
       { withCredentials: true },
@@ -31,7 +31,7 @@ export class BookingService {
 
   createBooking = (bookingRequest: BookingRequestDto): Observable<BookingResponseDto> => {
     return this.http.post<BookingResponseDto>(
-      'http://localhost:8080/booking/create',
+      'http://localhost:8080/booking/update',
       bookingRequest,
       {
         withCredentials: true,
@@ -40,7 +40,7 @@ export class BookingService {
   };
 
   cancelBooking = (bookingId: number): Observable<void> => {
-    return this.http.get<void>(`http://localhost:8080/booking/cancel-booking/${bookingId}`, {
+    return this.http.post<void>('http://localhost:8080/booking/cancel', bookingId, {
       withCredentials: true,
     });
   };

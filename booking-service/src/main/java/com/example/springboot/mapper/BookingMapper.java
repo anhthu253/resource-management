@@ -40,7 +40,7 @@ public class BookingMapper {
         bookingDto.setStartedAt(booking.getStartedAt());
         bookingDto.setEndedAt(booking.getEndedAt());
         bookingDto.setTotalPrice(booking.getTotalPrice());
-        List<String> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).map(r -> r.getResourceName()).collect(Collectors.toList());
+        List<ResourceDto> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).collect(Collectors.toList());
         bookingDto.setResources(resources);
         return bookingDto;
     }

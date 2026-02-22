@@ -1,4 +1,4 @@
-export interface ResourceResponseDto {
+export interface ResourceDto {
   resourceId: number;
   resourceName: string;
   basePrice: number;

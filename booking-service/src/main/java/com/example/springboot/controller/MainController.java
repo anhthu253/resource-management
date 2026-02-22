@@ -103,8 +103,8 @@ public class MainController {
 
     @GetMapping("/my-bookings/{userId}")
     public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable Long userId) {
-        var myBookings = this.bookingService.getMyBookings(userId);
-        return new ResponseEntity<>(this.bookingMapper.mapBookingListToBookingDtoList(myBookings), HttpStatus.OK);
+        List<Booking> bookings = this.bookingService.getMyBookings(userId);
+        return new ResponseEntity<>(this.bookingMapper.mapBookingListToBookingDtoList(bookings), HttpStatus.OK);
     }
     @PostMapping("/proceed-payment")
     public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto) {

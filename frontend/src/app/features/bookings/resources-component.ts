@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
-import { ResourceResponseDto } from '../../core/dtos/resource.dto';
+import { ResourceDto } from '../../core/dtos/resource.dto';
 import { BookingService } from '../../core/services/booking.service';
 import { MatList, MatListItem } from '@angular/material/list';
 import { CommonModule } from '@angular/common';
@@ -12,14 +12,14 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResourcesComponent {
-  resources!: ResourceResponseDto[];
+  resources!: ResourceDto[];
   constructor(
     private bookingService: BookingService,
     private cdr: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
     this.bookingService.getAllResources().subscribe({
-      next: (res: ResourceResponseDto[]) => {
+      next: (res: ResourceDto[]) => {
         this.resources = res;
         this.cdr.detectChanges();
       },

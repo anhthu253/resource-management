@@ -1,3 +1,4 @@
+<h2>{{changeNotification}}</h2>
 <form [formGroup]="bookingFormGroup">
     <div [formGroup]="periodGroup">
         <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
@@ -15,8 +16,8 @@
         <div>
             <label>Resource</label>
             <ul>
-                <li *ngFor="let selected of selectedResourceNames">
-                    {{ selected }}
+                <li *ngFor="let selectedResource of selectedResources">
+                    {{ selectedResource.resourceName }}
                 </li>
             </ul>
         </div>
@@ -26,6 +27,7 @@
         </div>
         <p>Total price: {{totalPrice | currency}}</p>
     </div>
+    <p class="error">{{errorMessage}}</p>
     <div class="btn-row"b>
         <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
         <button *ngIf="bookingFormGroup.valid" mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>

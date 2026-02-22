@@ -71,7 +71,6 @@ export class ValidationService {
     endedCtrl.setErrors(null);
     group.setErrors(null);
 
-    if (!startedCtrl.dirty || !endedCtrl.dirty) return { required: true };
     if (!startedAt) {
       startedCtrl.setErrors({ required: 'This field is required' });
       return { required: true };

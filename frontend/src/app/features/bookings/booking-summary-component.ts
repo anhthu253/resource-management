@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { ResourceDto } from '../../core/dtos/resource.dto';
 @Component({
   standalone: true,
   selector: 'app-booking-summary',
@@ -12,18 +13,19 @@ import { BookingStateService } from '../../core/services/booking.state.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingSummaryComponent implements OnInit {
-  bookingDto: BookingDto | null = null;
+  booking: BookingDto | null = null;
+  resources: ResourceDto[] = [];
   constructor(
     private bookingService: BookingService,
     private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
-    this.bookingStateService.bookingData$.subscribe((data) => {
+    this.bookingStateService.bookingResponse$.subscribe((data) => {
       if (!data) return;
       this.bookingService.getCurrentBooking(data.bookingId).subscribe({
-        next: (res) => {
-          this.bookingDto = res;
+        next: (res: BookingDto) => {
+          this.booking = res;
           this.changeDetector.markForCheck();
         },
         error: (err) => console.log('error getting current booking'),

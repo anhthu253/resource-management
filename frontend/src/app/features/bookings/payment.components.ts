@@ -17,7 +17,7 @@ import {
 } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
 import { PaymentIntentDto } from '../../core/dtos/booking.dto';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { Popup } from '../../core/components/pop-up/pop-up.component';
 import { MatButton } from '@angular/material/button';
@@ -54,7 +54,6 @@ export class PaymentComponent implements OnInit, AfterViewInit {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
     private bookingService: BookingService,
     private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
@@ -112,8 +111,8 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     if (error) {
       return;
     }
-    const bookingData = null;
-    this.bookingStateService.bookingData$.subscribe((data) => {
+
+    this.bookingStateService.bookingResponse$.subscribe((data) => {
       if (!data) return;
       this.paymentIntent.bookingId = data?.bookingId;
       this.paymentIntent.paymentId = data.paymentId;
@@ -123,9 +122,7 @@ export class PaymentComponent implements OnInit, AfterViewInit {
         next: async (res) => {
           const result = await this.stripe.confirmCardPayment(res);
           if (result.paymentIntent?.status === 'succeeded') {
-            this.router.navigate(['../booking-summary'], {
-              relativeTo: this.route,
-            });
+            this.router.navigate(['/booking-summary']);
           } else this.isPaymentFailed = true;
         },
         error: (err) => {

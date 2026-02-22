@@ -8,8 +8,9 @@ export class PaymentGuard implements CanActivate {
     private bookingStateService: BookingStateService,
     private router: Router,
   ) {}
+  //users are only allowed to navigate form /new-booking to /payment. Prevent user from typing /payment directly
   canActivate(): boolean {
-    const bookingId = this.bookingStateService.get()?.bookingId;
+    const bookingId = this.bookingStateService.getBookingResponse()?.bookingId;
     if (!bookingId) {
       this.router.navigate(['/new-booking']);
       return false;

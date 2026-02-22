@@ -1,18 +1,30 @@
 import { Injectable } from '@angular/core';
-import { BookingResponseDto } from '../dtos/booking.dto';
+import { BookingDto, BookingResponseDto } from '../dtos/booking.dto';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class BookingStateService {
-  private bookingDataSubject = new BehaviorSubject<BookingResponseDto | null>(null);
-  bookingData$ = this.bookingDataSubject.asObservable();
-  set(data: BookingResponseDto) {
-    this.bookingDataSubject.next(data);
+  private bookingResponseSubject = new BehaviorSubject<BookingResponseDto | null>(null);
+  bookingResponse$ = this.bookingResponseSubject.asObservable();
+  setBookingResponse(data: BookingResponseDto) {
+    this.bookingResponseSubject.next(data);
   }
-  get(): BookingResponseDto | null {
-    return this.bookingDataSubject.value;
+  getBookingResponse(): BookingResponseDto | null {
+    return this.bookingResponseSubject.value;
   }
-  clear() {
-    this.bookingDataSubject.next(null);
+  clearBookingResponse() {
+    this.bookingResponseSubject.next(null);
   }
+
+  private bookingSubject = new BehaviorSubject<BookingDto | null>(null);
+  booking$ = this.bookingSubject.asObservable();
+  setBooking = (booking: BookingDto) => {
+    this.bookingSubject.next(booking);
+  };
+  getBooking = () => {
+    return this.bookingSubject.value;
+  };
+  clearBooking = () => {
+    this.bookingSubject.next(null);
+  };
 }

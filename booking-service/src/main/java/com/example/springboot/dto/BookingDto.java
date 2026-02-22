@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 public class BookingDto {
     private Long bookingId;
-    private List<String> resources;
+    private List<ResourceDto> resources;
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
     private LocalDateTime startedAt;

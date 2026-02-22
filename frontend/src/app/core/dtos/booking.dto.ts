@@ -1,8 +1,10 @@
+import { ResourceDto } from './resource.dto';
+
 export interface BookingRequestDto {
+  bookingId: number | null;
   resourceIds: number[];
   startedAt: Date | null;
   endedAt: Date | null;
-  purpose: string;
   userId?: number;
   totalPrice: number;
 }
@@ -18,7 +20,7 @@ export interface BookingDto {
   status: string;
   startedAt: Date | null;
   endedAt: Date | null;
-  resources: string[];
+  resources: ResourceDto[];
   totalPrice: number;
 }
 
