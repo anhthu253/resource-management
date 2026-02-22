@@ -21,7 +21,6 @@ public class BookingMapper {
     public Booking mapBookingDtoToBooking(BookingDto bookingDto){
         List<ResourceDto> allResource = resourceService.getAllResources().block();
         var booking = new Booking();
-        booking.setBookingId(bookingDto.getBookingId());
         booking.setStatus(bookingDto.getStatus());
         booking.setStartedAt(bookingDto.getStartedAt());
         booking.setEndedAt(bookingDto.getEndedAt());
