@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  resource,
+} from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,7 +21,7 @@ import { BookingService } from '../../core/services/booking.service';
 import { BookingStateService } from '../../core/services/booking.state.service';
 import { UserService } from '../../core/services/user.service';
 import { ValidationService } from '../../core/services/validation.service';
-import { BookingDto, BookingRequestDto } from '../../core/dtos/booking.dto';
+import { BookingDto } from '../../core/dtos/booking.dto';
 
 @Component({
   standalone: true,
@@ -185,11 +193,17 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       return; // if user hasn't changed the current booking, stop proceeding further
     }
     const { period, ...rest } = this.bookingFormGroup.value;
+    var resourceIds = rest.resourceIds;
+    if (!resourceIds) return;
+    const resources = this.resourceList.filter((resource) =>
+      resourceIds.includes(resource.resourceId),
+    );
+
     this.userService.user$.pipe(take(1)).subscribe((user) => {
       if (!user) return;
-      const postData: BookingRequestDto = {
+      const postData: BookingDto = {
         ...period,
-        ...rest,
+        resources: resources,
         bookingId: this.currentBooking?.bookingId,
         userId: user.userId,
         totalPrice: this.totalPrice,

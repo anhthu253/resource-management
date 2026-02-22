@@ -1,10 +1,8 @@
 package com.example.springboot.mapper;
 
 import com.example.springboot.dto.BookingDto;
-import com.example.springboot.dto.BookingRequestDto;
 import com.example.springboot.dto.ResourceDto;
 import com.example.springboot.model.Booking;
-import com.example.springboot.model.User;
 import com.example.springboot.repository.UserRepository;
 import com.example.springboot.service.ResourceService;
 import org.springframework.stereotype.Component;
@@ -20,18 +18,18 @@ public class BookingMapper {
         this.userRepository = userRepository;
         this.resourceService = resourceService;
     }
-
-    public Booking mapBookingRequestToBookingEntity(BookingRequestDto bookingRequest){
-            Booking booking = new Booking();
-            booking.setResourceIds(bookingRequest.getResourceIds());
-            booking.setStartedAt(bookingRequest.getStartedAt());
-            booking.setEndedAt(bookingRequest.getEndedAt());
-            booking.setTotalPrice(bookingRequest.getTotalPrice());
-            User user = this.userRepository.findById(bookingRequest.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
-            booking.setUser(user);
-            return booking;
+    public Booking mapBookingDtoToBooking(BookingDto bookingDto){
+        List<ResourceDto> allResource = resourceService.getAllResources().block();
+        var booking = new Booking();
+        booking.setBookingId(bookingDto.getBookingId());
+        booking.setStatus(bookingDto.getStatus());
+        booking.setStartedAt(bookingDto.getStartedAt());
+        booking.setEndedAt(bookingDto.getEndedAt());
+        booking.setTotalPrice(bookingDto.getTotalPrice());
+        List<Long> resourceIds = bookingDto.getResources().stream().map(resource -> resource.getResourceId()).collect(Collectors.toList());
+        booking.setResourceIds(resourceIds);
+        return booking;
     }
-
     public BookingDto mapBookingToBookingDto(Booking booking){
         List<ResourceDto> allResource = resourceService.getAllResources().block();
         var bookingDto = new BookingDto();

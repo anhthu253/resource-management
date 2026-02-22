@@ -29,7 +29,7 @@ export class BookingService {
     );
   };
 
-  createBooking = (bookingRequest: BookingRequestDto): Observable<BookingResponseDto> => {
+  createBooking = (bookingRequest: BookingDto): Observable<BookingResponseDto> => {
     return this.http.post<BookingResponseDto>(
       'http://localhost:8080/booking/update',
       bookingRequest,

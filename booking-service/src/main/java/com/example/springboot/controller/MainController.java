@@ -3,29 +3,25 @@ package com.example.springboot.controller;
 import com.example.springboot.dto.*;
 import com.example.springboot.mapper.BookingMapper;
 import com.example.springboot.model.Booking;
-import com.example.springboot.model.PaymentStatus;
+
 import com.example.springboot.service.BookingService;
 import com.example.springboot.service.StripeService;
-import com.fasterxml.jackson.databind.JsonNode;
+
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.*;
-import com.stripe.net.ApiResource;
+
 import com.stripe.net.Webhook;
-import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -53,7 +49,7 @@ public class MainController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateBooking(@RequestBody BookingRequestDto bookingRequestDto) {
+    public ResponseEntity<?> updateBooking(@RequestBody BookingDto bookingRequestDto) {
         if(bookingRequestDto.getBookingId() != null){
             try{
                 int nr = this.bookingService.updateBooking(bookingRequestDto.getBookingId(), "modified");
@@ -83,7 +79,7 @@ public class MainController {
                 return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_GATEWAY);
             }
         }
-        Booking bookingRequest = bookingMapper.mapBookingRequestToBookingEntity(bookingRequestDto);
+        Booking bookingRequest = bookingMapper.mapBookingDtoToBooking(bookingRequestDto);
         BookingResponseDto result = this.bookingService.createBooking(bookingRequest);
         return new ResponseEntity<>(result, HttpStatus.OK);
 

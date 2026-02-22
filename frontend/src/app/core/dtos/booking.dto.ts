@@ -1,14 +1,5 @@
 import { ResourceDto } from './resource.dto';
 
-export interface BookingRequestDto {
-  bookingId: number | null;
-  resourceIds: number[];
-  startedAt: Date | null;
-  endedAt: Date | null;
-  userId?: number;
-  totalPrice: number;
-}
-
 export interface BookingResponseDto {
   bookingId: number;
   paymentId: number;
