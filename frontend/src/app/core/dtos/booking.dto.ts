@@ -1,4 +1,5 @@
 import { ResourceDto } from './resource.dto';
+import { UserDto } from './user.dto';
 
 export interface BookingResponseDto {
   bookingId: number;
@@ -13,6 +14,7 @@ export interface BookingDto {
   endedAt: Date | null;
   resources: ResourceDto[];
   totalPrice: number;
+  userId: number;
 }
 
 export interface PaymentIntentDto {

@@ -19,4 +19,5 @@ public class BookingDto {
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private BigDecimal totalPrice;
+    private Long userId;
 }

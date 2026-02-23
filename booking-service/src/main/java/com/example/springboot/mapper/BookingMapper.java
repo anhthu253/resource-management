@@ -3,11 +3,13 @@ package com.example.springboot.mapper;
 import com.example.springboot.dto.BookingDto;
 import com.example.springboot.dto.ResourceDto;
 import com.example.springboot.model.Booking;
+import com.example.springboot.model.User;
 import com.example.springboot.repository.UserRepository;
 import com.example.springboot.service.ResourceService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Component
 public class BookingMapper {
@@ -25,6 +27,8 @@ public class BookingMapper {
         booking.setStartedAt(bookingDto.getStartedAt());
         booking.setEndedAt(bookingDto.getEndedAt());
         booking.setTotalPrice(bookingDto.getTotalPrice());
+        User user = userRepository.findById(bookingDto.getUserId()).orElseThrow(()-> new IllegalArgumentException("User not found"));
+        booking.setUser(user);
         List<Long> resourceIds = bookingDto.getResources().stream().map(resource -> resource.getResourceId()).collect(Collectors.toList());
         booking.setResourceIds(resourceIds);
         return booking;
