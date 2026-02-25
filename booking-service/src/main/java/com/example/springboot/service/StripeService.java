@@ -12,6 +12,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Base64;
+import java.util.UUID;
+
 @Service
 public class StripeService {
     private String auth;
@@ -44,11 +46,13 @@ public class StripeService {
 
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
-    public HttpResponse<String> postPaymentRefund(String chargeId) throws Exception {
+    public HttpResponse<String> postPaymentRefund(long bookingId, String chargeId) throws Exception {
+        String idempotencyKey = "refund-booking-" + bookingId + "-" + UUID.randomUUID();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(stripeBaseUrl+"/refunds"))
                 .header("Authorization", "Basic " + auth)
                 .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Idempotency-Key", idempotencyKey)
                 .POST(HttpRequest.BodyPublishers.ofString(
                         "charge="+chargeId
                 ))

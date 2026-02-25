@@ -1,6 +1,7 @@
 package com.example.springboot.dto;
 
 import com.example.springboot.model.BookingStatus;
+import com.example.springboot.model.ModificationStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.Getter;
@@ -14,8 +15,8 @@ import java.util.List;
 public class BookingDto {
     private Long bookingId;
     private List<ResourceDto> resources;
-    @Enumerated(EnumType.STRING)
-    private BookingStatus status;
+    private BookingStatus bookingStaus;
+    private ModificationStatus modificationStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private BigDecimal totalPrice;

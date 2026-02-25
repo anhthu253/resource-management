@@ -32,7 +32,9 @@ public class Booking {
     @Column(name = "resource_id")
     private List<Long> resourceIds;
     @Enumerated(EnumType.STRING)
-    private BookingStatus status;
+    private BookingStatus bookingStatus;
+    @Enumerated(EnumType.STRING)
+    private ModificationStatus modificationStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private BigDecimal totalPrice;

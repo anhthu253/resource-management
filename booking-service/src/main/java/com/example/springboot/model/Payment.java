@@ -24,6 +24,6 @@ public class Payment {
     private Currency currency;
     private String provider;
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
+    private PaymentStatus paymentStatus;
 
 }

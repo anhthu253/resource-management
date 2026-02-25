@@ -5,6 +5,8 @@ import com.example.springboot.mapper.BookingMapper;
 import com.example.springboot.model.Booking;
 
 import com.example.springboot.service.BookingService;
+import com.example.springboot.service.PaymentService;
+import com.example.springboot.service.RefundService;
 import com.example.springboot.service.StripeService;
 
 import com.stripe.exception.EventDataObjectDeserializationException;
@@ -16,12 +18,16 @@ import com.stripe.net.Webhook;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
 @Slf4j
@@ -29,15 +35,19 @@ import java.util.List;
 @RequestMapping("/booking")
 public class MainController {
     private final BookingService bookingService;
+    private final PaymentService paymentService;
     private final StripeService stripeService;
     private final BookingMapper bookingMapper;
+    private final RefundService refundService;
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
 
-    public MainController(BookingService bookingService, StripeService stripeService, BookingMapper bookingMapper) {
+    public MainController(BookingService bookingService, PaymentService paymentService, StripeService stripeService, BookingMapper bookingMapper, RefundService refundService) {
         this.bookingService = bookingService;
+        this.paymentService = paymentService;
         this.stripeService = stripeService;
         this.bookingMapper = bookingMapper;
+        this.refundService = refundService;
     }
     @GetMapping("/all-resources")
     public ResponseEntity<List<ResourceDto>> getAllResources() {
@@ -47,48 +57,54 @@ public class MainController {
     public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
         return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);
     }
-
-    @PostMapping("/update")
-    public ResponseEntity<?> updateBooking(@RequestBody BookingDto bookingRequestDto) {
-        if(bookingRequestDto.getBookingId() != null){
-            try{
-                int nr = this.bookingService.updateBooking(bookingRequestDto.getBookingId(), "modified");
-                if(nr == 0){
-                    String error = "Unsuccessfully modify booking with booking Id "+bookingRequestDto.getBookingId();
-                    return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            }
-            catch (Exception ex){
-                return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-            }
-
-            try{
-                int refundStatusCode = bookingService.createRefund(bookingRequestDto.getBookingId());
-                if (refundStatusCode >= 400 && refundStatusCode < 500) {
-                    return ResponseEntity
-                            .status(HttpStatus.BAD_REQUEST)
-                            .body("Refund rejected by Stripe");
-                }
-                if (refundStatusCode >= 500) {
-                    return ResponseEntity
-                            .status(HttpStatus.BAD_GATEWAY)
-                            .body("Stripe service unavailable. Please try again later.");
-                }
-            }
-            catch (Exception ex){
-                return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_GATEWAY);
-            }
+    @PostMapping("/create")
+    public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingRequestDto) {
+        try{
+            Booking bookingRequest = bookingMapper.mapBookingDtoToBooking(bookingRequestDto);
+            BookingResponseDto result = this.bookingService.createBooking(bookingRequest);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         }
-        Booking bookingRequest = bookingMapper.mapBookingDtoToBooking(bookingRequestDto);
-        BookingResponseDto result = this.bookingService.createBooking(bookingRequest);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        catch(Exception ex){
+            return new ResponseEntity<>("Failed to create booking", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @PostMapping("/update")
+    public ResponseEntity<?> updateBooking(@RequestBody Long bookingId) {
+            try{
+                this.bookingService.updateBooking(bookingId);
+            }
+            catch (NoSuchElementException e){
+                return new ResponseEntity<>("Booking not found", HttpStatus.NOT_FOUND);
+            }
+            catch(DataIntegrityViolationException e){
+                return new ResponseEntity<>("Failed to update booking due to database constraint", HttpStatus.BAD_REQUEST);
+            }
+            catch(Exception e){
+                return new ResponseEntity<>("Server error while updating booking", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
+            try{
+                return paymentService.createRefund(bookingId);
+            }
+            catch (Exception ex){
+                return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
     }
     @PostMapping("/cancel")
-    public ResponseEntity<Void> cancelBooking(@RequestBody Long bookingId) {
-            if(this.bookingService.updateBooking(bookingId, "canceled")==0)
-                return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
-            return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> cancelBooking(@RequestBody Long bookingId) {
+        try{
+            this.bookingService.cancelBooking(bookingId);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+        catch (NoSuchElementException e){
+            return new ResponseEntity<>("Booking not found", HttpStatus.NOT_FOUND);
+        }
+        catch(DataIntegrityViolationException e){
+            return new ResponseEntity<>("Failed to cancel booking due to database constraint", HttpStatus.BAD_REQUEST);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>("Server error while canceling booking", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/current-booking/{bookingId}")
@@ -104,12 +120,14 @@ public class MainController {
     }
     @PostMapping("/proceed-payment")
     public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto) {
-        try {
-            return bookingService.createPaymentIntent(paymentIntentDto);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-        }
-
+        return paymentService.createPaymentIntent(paymentIntentDto);
+    }
+    @GetMapping(
+            path = "/refund/status/{bookingId}",
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public Flux<RefundStatusUpdateDto> stream(@PathVariable long bookingId) {
+        return refundService.getStatusStream(bookingId);
     }
     @PostMapping("/webhooks/stripe")
     public ResponseEntity<?> handleStripeWebhook(@RequestBody String payload,
@@ -124,8 +142,8 @@ public class MainController {
 
         EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
         try {
-                StripeObject stripeObject = deserializer.deserializeUnsafe();
-            HttpStatus status = bookingService.updatePayment(event.getType(), stripeObject);
+            StripeObject stripeObject = deserializer.deserializeUnsafe();
+            HttpStatus status = paymentService.updatePayment(event.getType(), stripeObject);
             return new ResponseEntity<>(status);
         }
         catch(EventDataObjectDeserializationException e){
@@ -151,54 +169,5 @@ public class MainController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-/*
-    @PostMapping("/webhooks/stripe")
-    public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
-        try {
-            // Verify the signature
-            Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            String paymentIntentId = null;
-            String chargeId = null;
-            Long amount = null;
 
-            EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
-            if (deserializer.getObject().isPresent())
-                bookingService.updatePayment(event.getType(), deserializer.getObject().get());
-            else {
-                //when Stripe Java SDK is older than Stripe API version
-                String rawJson = deserializer.getRawJson();
-                if (rawJson != null) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        JsonNode root = mapper.readTree(rawJson);
-                        JsonNode objectNode = root.path("data").path("object");
-                        paymentIntentId = objectNode.path("id").asText(null);
-                        chargeId = objectNode.path("latest_charge").asText(null);
-                    } catch (Exception ex) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid webhook payload");
-                    }
-                }
-            }
-            return ResponseEntity.ok("Received");
-
-        } catch (SignatureVerificationException e) {
-            // Invalid signature
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Webhook signature verification failed");
-        }
-    }
-    */
-
-
-    /*
-     * @PostMapping("/confirm")
-     * ResponseEntity<BookingStatus> confirmBooking (@RequestBody BookingConfirmDto
-     * bookingConfirmDto){
-     * Booking boookingConfirm =
-     * bookingRequestMapper.mapBookingRequestToBookingEntity(bookingConfirmDto);
-     * BookingResponseDto result =
-     * this.bookingService.createBooking(boookingConfirm);
-     * return new ResponseEntity<>(result, HttpStatus.OK);
-     * }
-     */
 }

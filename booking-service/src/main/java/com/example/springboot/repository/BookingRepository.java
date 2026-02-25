@@ -16,17 +16,9 @@ import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    @Query("SELECT b from Booking b where b.startedAt <= :ended and b.endedAt > :started and (b.status = BookingStatus.CONFIRMED or b.status = PENDING_CONFIRMATION )")
+    @Query("SELECT b from Booking b where b.startedAt <= :ended and b.endedAt > :started and b.bookingStatus in (BookingStatus.CONFIRMED, BookingStatus.PENDING_CONFIRMATION)")
     List<Booking> getBookings(LocalDateTime started, LocalDateTime ended);
-    @Query("Select b from Booking b where b.user.id = :userId and b.status in (BookingStatus.CONFIRMED,BookingStatus.MODIFIED)")
+    @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus = BookingStatus.CONFIRMED")
     List<Booking> getBookingsByUserId(Long userId);
     Optional<Booking> findByPayment(Payment payment);
-    @Transactional
-    @Modifying
-    @Query("UPDATE Booking b SET b.status = BookingStatus.CANCELED WHERE b.bookingId = :bookingId")
-    int cancelBookingById(@Param("bookingId") long bookingId);
-    @Transactional
-    @Modifying
-    @Query("UPDATE Booking b SET b.status = BookingStatus.MODIFIED WHERE b.bookingId = :bookingId")
-    int modifyBookingById(@Param("bookingId") long bookingId);
 }

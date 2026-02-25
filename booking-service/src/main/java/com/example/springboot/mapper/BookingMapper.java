@@ -9,7 +9,6 @@ import com.example.springboot.service.ResourceService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 @Component
 public class BookingMapper {
@@ -23,7 +22,8 @@ public class BookingMapper {
     public Booking mapBookingDtoToBooking(BookingDto bookingDto){
         List<ResourceDto> allResource = resourceService.getAllResources().block();
         var booking = new Booking();
-        booking.setStatus(bookingDto.getStatus());
+        booking.setBookingStatus(bookingDto.getBookingStaus());
+        booking.setModificationStatus(bookingDto.getModificationStatus());
         booking.setStartedAt(bookingDto.getStartedAt());
         booking.setEndedAt(bookingDto.getEndedAt());
         booking.setTotalPrice(bookingDto.getTotalPrice());
@@ -37,7 +37,8 @@ public class BookingMapper {
         List<ResourceDto> allResource = resourceService.getAllResources().block();
         var bookingDto = new BookingDto();
         bookingDto.setBookingId(booking.getBookingId());
-        bookingDto.setStatus(booking.getStatus());
+        bookingDto.setBookingStaus(booking.getBookingStatus());
+        bookingDto.setModificationStatus(booking.getModificationStatus());
         bookingDto.setStartedAt(booking.getStartedAt());
         bookingDto.setEndedAt(booking.getEndedAt());
         bookingDto.setTotalPrice(booking.getTotalPrice());
