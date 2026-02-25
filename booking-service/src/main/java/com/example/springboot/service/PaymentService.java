@@ -2,11 +2,13 @@ package com.example.springboot.service;
 
 import com.example.springboot.dto.PaymentIntentDto;
 import com.example.springboot.dto.PaymentIntentResponseDto;
+import com.example.springboot.dto.RefundStatusUpdateDto;
 import com.example.springboot.dto.StripeErrorResponseDto;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
 import com.example.springboot.repository.PaymentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.model.Charge;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
 import com.stripe.model.StripeObject;
@@ -101,10 +103,10 @@ public class PaymentService {
             }
 
             // Refund events
-            case "refund.succeeded" -> {
-                Refund refund = (Refund) stripeObject;
-                String chargeId = refund.getCharge();
-                Long amount = refund.getAmount();
+            case "charge.refunded" -> {
+                Charge charge = (Charge) stripeObject;
+                String chargeId = charge.getId();
+                Long amount = charge.getAmount();
 
                 payment = paymentRepository.findByChargeId(chargeId)
                         .orElseThrow(() -> new IllegalArgumentException("Payment not found for Charge: " + chargeId));
@@ -113,7 +115,10 @@ public class PaymentService {
 
                 payment.setPaymentStatus(PaymentStatus.REFUNDED);
                 payment.setRefundedAmount(amount);
-                booking.setBookingStatus(BookingStatus.CANCELED); // or MODIFIED depending on business rule
+                if(booking.getBookingStatus() == BookingStatus.CANCEL_PENDING)
+                    booking.setBookingStatus(BookingStatus.CANCELED); // reverse booking to active
+                else if(booking.getModificationStatus() == ModificationStatus.MODIFY_PENDING)
+                    booking.setModificationStatus(ModificationStatus.MODIFIED);
                 status = HttpStatus.OK;
             }
 
@@ -131,14 +136,16 @@ public class PaymentService {
                 if(booking.getBookingStatus() == BookingStatus.CANCEL_PENDING)
                     booking.setBookingStatus(BookingStatus.CONFIRMED); // reverse booking to active
                 else if(booking.getModificationStatus() == ModificationStatus.MODIFY_PENDING)
-                    booking.setModificationStatus(ModificationStatus.MODIFIED);
+                    booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
                 status = HttpStatus.INTERNAL_SERVER_ERROR;
             }
-
-            default -> throw new IllegalArgumentException("Unhandled Stripe event type: " + eventType);
+            default -> {
+                payment=null;
+                booking=null;
+            }
         }
         // Save updates
-        paymentRepository.save(payment);
+        if(payment != null) paymentRepository.save(payment);
         if (booking != null) bookingRepository.save(booking);
         return status;
     }
