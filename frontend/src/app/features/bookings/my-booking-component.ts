@@ -8,13 +8,25 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { MatDialog } from '@angular/material/dialog';
+import { RefundService } from '../../core/services/refund.status.service';
+import { NotificationDialog } from '../../core/components/pop-up/notification-component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   standalone: true,
   selector: 'app-my-booking',
   templateUrl: './my-booking-component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatCard, MatCardTitle, MatCardContent, MatIcon, MatSpinner],
+  imports: [
+    CommonModule,
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatIcon,
+    MatSpinner,
+    MatTooltipModule,
+  ],
 })
 export class MyBookingComponent implements OnInit {
   bookings: (BookingDto & { isPastBooking: boolean })[] = [];
@@ -22,9 +34,11 @@ export class MyBookingComponent implements OnInit {
   constructor(
     private router: Router,
     private bookingService: BookingService,
+    private refundService: RefundService,
     private bookingStateService: BookingStateService,
     private user: UserService,
     private cdr: ChangeDetectorRef,
+    private dialog: MatDialog,
   ) {}
 
   cancelBooking = (bookingId: number) => {
@@ -42,6 +56,29 @@ export class MyBookingComponent implements OnInit {
   modifyBooking = (booking: BookingDto) => {
     this.bookingStateService.setBooking(booking);
     this.router.navigate(['/new-booking']);
+  };
+
+  openDialog = (message: string) => {
+    const dialogRef = this.dialog.open(NotificationDialog, {
+      width: '350px',
+      data: {
+        message: message,
+      },
+    });
+  };
+
+  trackRefund = (bookingId: number) => {
+    this.refundService.getRefundStatusStream(bookingId).subscribe(
+      (status) => {
+        console.log('tracking refund');
+        let message = 'We are working on it and will get back to you as soon as possible.';
+        if (status) message = status.message;
+        this.openDialog(message);
+      },
+      (error) => {
+        console.log(error.err);
+      },
+    );
   };
 
   ngOnInit(): void {

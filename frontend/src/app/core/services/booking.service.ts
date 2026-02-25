@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ResourceDto } from '../dtos/resource.dto';
-import {
-  BookingDto,
-  BookingRequestDto,
-  BookingResponseDto,
-  PaymentIntentDto,
-} from '../dtos/booking.dto';
+import { BookingDto, BookingResponseDto, PaymentIntentDto } from '../dtos/booking.dto';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
 
@@ -31,12 +26,19 @@ export class BookingService {
 
   createBooking = (bookingRequest: BookingDto): Observable<BookingResponseDto> => {
     return this.http.post<BookingResponseDto>(
-      'http://localhost:8080/booking/update',
+      'http://localhost:8080/booking/create',
       bookingRequest,
       {
         withCredentials: true,
       },
     );
+  };
+
+  updateBooking = (bookingId: number): Observable<string> => {
+    return this.http.post<string>(`http://localhost:8080/booking/update`, bookingId, {
+      withCredentials: true,
+      responseType: 'text' as 'json',
+    });
   };
 
   cancelBooking = (bookingId: number): Observable<void> => {

@@ -24,9 +24,5 @@
   <p class="error">{{cardNumberError}}</p>
   <p class="error">{{cardExpiryError}}</p>
   <p class="error">{{failPaymentmessage}}</p>
-  <app-popup *ngIf="isPaymentFailed" 
-    title="Payment failed!" 
-    content="Your payment is not successfully proceeded. Please try again"
-    (close)="isPaymentFailed=false"></app-popup>
 </div>
 

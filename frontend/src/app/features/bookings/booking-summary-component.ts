@@ -1,5 +1,11 @@
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingStateService } from '../../core/services/booking.state.service';
@@ -12,7 +18,7 @@ import { ResourceDto } from '../../core/dtos/resource.dto';
   imports: [CurrencyPipe, DatePipe, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookingSummaryComponent implements OnInit {
+export class BookingSummaryComponent implements OnInit, OnDestroy {
   booking: BookingDto | null = null;
   resources: ResourceDto[] = [];
   constructor(
@@ -21,15 +27,17 @@ export class BookingSummaryComponent implements OnInit {
     private changeDetector: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
-    this.bookingStateService.bookingResponse$.subscribe((data) => {
-      if (!data) return;
-      this.bookingService.getCurrentBooking(data.bookingId).subscribe({
-        next: (res: BookingDto) => {
-          this.booking = res;
-          this.changeDetector.markForCheck();
-        },
-        error: (err) => console.log('error getting current booking'),
-      });
+    const data = this.bookingStateService.getBookingResponse();
+    if (!data) return;
+    this.bookingService.getCurrentBooking(data.bookingId).subscribe({
+      next: (res: BookingDto) => {
+        this.booking = res;
+        this.changeDetector.markForCheck();
+      },
+      error: (err) => console.log('error getting current booking'),
     });
+  }
+  ngOnDestroy(): void {
+    this.bookingStateService.clearBookingResponse();
   }
 }

@@ -19,19 +19,20 @@ import { environment } from '../../../environments/environment';
 import { PaymentIntentDto } from '../../core/dtos/booking.dto';
 import { Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
-import { Popup } from '../../core/components/pop-up/pop-up.component';
 import { MatButton } from '@angular/material/button';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { NotificationDialog } from '../../core/components/pop-up/notification-component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   standalone: true,
   selector: 'app-payment',
   templateUrl: './payment.component.html',
   styleUrl: './payment.component.css',
-  imports: [ReactiveFormsModule, CommonModule, RadioButton, Popup, MatButton],
+  imports: [ReactiveFormsModule, CommonModule, RadioButton, MatButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaymentComponent implements OnInit, AfterViewInit {
+export class PaymentComponent implements AfterViewInit {
   paymentBrands = ['Visa', 'Mastercard', 'Paypal'];
   selectedBrand = new FormControl<string>('');
   detectedBrand = 'unknown';
@@ -57,6 +58,7 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     private bookingService: BookingService,
     private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
+    private dialog: MatDialog,
   ) {}
 
   async ngAfterViewInit() {
@@ -101,7 +103,15 @@ export class PaymentComponent implements OnInit, AfterViewInit {
       this.cardWarningMessage = '';
     }
   }
-  ngOnInit() {}
+  openDialog = (message: string) => {
+    const dialogRef = this.dialog.open(NotificationDialog, {
+      width: '350px',
+      data: {
+        message: message,
+      },
+    });
+  };
+
   async pay() {
     const { paymentMethod, error } = await this.stripe.createPaymentMethod({
       type: 'card',
@@ -111,24 +121,22 @@ export class PaymentComponent implements OnInit, AfterViewInit {
     if (error) {
       return;
     }
+    const data = this.bookingStateService.getBookingResponse();
+    if (!data) return;
+    this.paymentIntent.bookingId = data?.bookingId;
+    this.paymentIntent.paymentId = data.paymentId;
+    this.paymentIntent.paymentMethodId = paymentMethod?.id;
 
-    this.bookingStateService.bookingResponse$.subscribe((data) => {
-      if (!data) return;
-      this.paymentIntent.bookingId = data?.bookingId;
-      this.paymentIntent.paymentId = data.paymentId;
-      this.paymentIntent.paymentMethodId = paymentMethod?.id;
-
-      this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
-        next: async (res) => {
-          const result = await this.stripe.confirmCardPayment(res);
-          if (result.paymentIntent?.status === 'succeeded') {
-            this.router.navigate(['/booking-summary']);
-          } else this.isPaymentFailed = true;
-        },
-        error: (err) => {
-          this.failPaymentmessage = err;
-        },
-      });
+    this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
+      next: async (res) => {
+        const result = await this.stripe.confirmCardPayment(res);
+        if (result.paymentIntent?.status === 'succeeded') {
+          this.router.navigate(['/booking-summary']);
+        } else this.openDialog('Payment is not processed. Please try again later.');
+      },
+      error: (err) => {
+        this.openDialog(err.error);
+      },
     });
   }
 }

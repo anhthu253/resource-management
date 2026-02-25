@@ -126,7 +126,7 @@ public class MainController {
             path = "/refund/status/{bookingId}",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE
     )
-    public Flux<RefundStatusUpdateDto> stream(@PathVariable long bookingId) {
+    public Flux<RefundStatusUpdateDto> stream(@PathVariable Long bookingId) {
         return refundService.getStatusStream(bookingId);
     }
     @PostMapping("/webhooks/stripe")

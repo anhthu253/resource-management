@@ -1,10 +1,11 @@
 <mat-spinner *ngIf="bookings.length === 0"></mat-spinner>
 <mat-card *ngFor="let booking of bookings; let i = index" class="booking-card">
   <mat-card-title>
-    <span>Booking {{ i + 1 }}</span>
-    <mat-icon *ngIf="!booking.isPastBooking && booking?.status==='CONFIRMED'" (click)="cancelBooking(booking.bookingId)">unsubscribe</mat-icon>
-    <mat-icon *ngIf="!booking.isPastBooking && booking?.status==='CONFIRMED'" (click)="modifyBooking(booking)">edit</mat-icon>
-    <mat-icon *ngIf="booking?.status==='MODIFIED'">track_changes</mat-icon>
+    <span>Booking {{ booking.bookingId }}</span>
+    <mat-icon *ngIf="!booking.isPastBooking && (booking?.modificationStatus==='NONE'||booking?.modificationStatus==='MODIFY_FAILED')" (click)="cancelBooking(booking.bookingId)">unsubscribe</mat-icon>
+    <mat-icon *ngIf="!booking.isPastBooking && (booking?.modificationStatus==='NONE'||booking?.modificationStatus==='MODIFY_FAILED')" (click)="modifyBooking(booking)">edit</mat-icon>
+    <mat-icon *ngIf="!booking.isPastBooking && booking?.modificationStatus==='MODIFY_PENDING'" (click)="trackRefund(booking.bookingId)">track_changes</mat-icon>
+    <mat-icon *ngIf="!booking.isPastBooking && booking?.modificationStatus==='MODIFIED'" matTooltip="Booking modified" matTooltipPosition="above">check_circle</mat-icon>
   </mat-card-title>
 
   <mat-card-content>

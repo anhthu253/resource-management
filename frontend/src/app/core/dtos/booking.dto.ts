@@ -1,5 +1,4 @@
 import { ResourceDto } from './resource.dto';
-import { UserDto } from './user.dto';
 
 export interface BookingResponseDto {
   bookingId: number;
@@ -9,7 +8,8 @@ export interface BookingResponseDto {
 
 export interface BookingDto {
   bookingId: number;
-  status: string;
+  bookingStatus: string;
+  modificationStatus: string;
   startedAt: Date | null;
   endedAt: Date | null;
   resources: ResourceDto[];

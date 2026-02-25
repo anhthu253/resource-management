@@ -22,13 +22,24 @@ import { BookingStateService } from '../../core/services/booking.state.service';
 import { UserService } from '../../core/services/user.service';
 import { ValidationService } from '../../core/services/validation.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
+import { HttpStatusCode } from '@angular/common/http';
+import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
+import { MatDialog } from '@angular/material/dialog';
+import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 
 @Component({
   standalone: true,
   selector: 'app-new-booking',
   templateUrl: './create-new-booking.component.html',
   styleUrl: './create-new-booking.component.css',
-  imports: [ReactiveFormsModule, CommonModule, DatePicker, MultipleSelection, MatButtonModule],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    DatePicker,
+    MultipleSelection,
+    MatButtonModule,
+    ConfirmDialog,
+  ],
 })
 export class NewBookingComponent implements OnInit, OnDestroy {
   resourceList: ResourceDto[] = [];
@@ -42,6 +53,9 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
   changeNotification = '';
   errorMessage = '';
+  confirmDialog: boolean = false;
+  alert: boolean = false;
+
   private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
@@ -51,6 +65,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     private bookingStateService: BookingStateService,
     private validationService: ValidationService,
     private fb: FormBuilder,
+    private dialog: MatDialog,
     private cf: ChangeDetectorRef,
   ) {
     this.bookingFormGroup = fb.group(
@@ -135,6 +150,27 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     });
   }
 
+  openSucceededRefundConfirm = (message: string) => {
+    const dialogRef = this.dialog.open(NotificationDialog, {
+      width: '350px',
+      data: {
+        message: message + ' Please press OK to complete the new booking.',
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.createBooking(); //execute new booking upon closing dialog
+    });
+  };
+
+  openFailureAlert = (message: string) => {
+    const dialogRef = this.dialog.open(NotificationDialog, {
+      width: '350px',
+      data: {
+        message: message,
+      },
+    });
+  };
+
   //get resources for the choosen period
   fetchResources = () => {
     const startedAt = this.periodGroup.get('startedAt')?.value;
@@ -154,7 +190,9 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         });
         this.cf.detectChanges();
       },
-      error: (err) => (this.errorMessage = err.message),
+      error: (err) => {
+        console.log('error type', err.status, err.message);
+      },
     });
   };
 
@@ -178,33 +216,32 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
 
   onCancelBooking = () => {
+    this.clearBooking();
     if (this.currentBooking && this.currentBooking.bookingId) {
-      this.bookingStateService.clearBooking();
       this.router.navigate(['/my-bookings']);
     }
+  };
+
+  clearBooking = () => {
+    this.bookingStateService.clearBooking();
     this.bookingFormGroup.patchValue(this.bookingFormData);
     this.totalPrice = 0;
     this.changeNotification = '';
     this.errorMessage = '';
   };
 
-  toPayment = () => {
-    if (JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.bookingFormData)) {
-      return; // if user hasn't changed the current booking, stop proceeding further
-    }
+  createBooking = () => {
     const { period, ...rest } = this.bookingFormGroup.value;
     var resourceIds = rest.resourceIds;
     if (!resourceIds) return;
     const resources = this.resourceList.filter((resource) =>
       resourceIds.includes(resource.resourceId),
     );
-
     this.userService.user$.pipe(take(1)).subscribe((user) => {
       if (!user) return;
       const postData: BookingDto = {
         ...period,
         resources: resources,
-        bookingId: this.currentBooking?.bookingId,
         userId: user.userId,
         totalPrice: this.totalPrice,
       };
@@ -215,10 +252,32 @@ export class NewBookingComponent implements OnInit, OnDestroy {
           this.router.navigate(['/payment']);
         },
         error: (err) => {
-          this.errorMessage = err.error;
-          this.cf.detectChanges();
+          this.openFailureAlert(err.error);
         },
       });
     });
+  };
+
+  updateBooking = () => {
+    if (!this.currentBooking || !this.currentBooking.bookingId) return;
+    if (JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.bookingFormData)) {
+      return; // if user hasn't changed the current booking, stop proceeding further
+    }
+
+    this.bookingService.updateBooking(this.currentBooking!.bookingId).subscribe({
+      next: (res) => {
+        this.openSucceededRefundConfirm(res);
+      },
+      error: (err) => {
+        this.openFailureAlert(err.error); //refund failed due to stripe. Will be tried in the backend.
+      },
+    });
+  };
+
+  toPayment = () => {
+    if (this.currentBooking && this.currentBooking.bookingId)
+      //change booking
+      this.updateBooking();
+    else this.createBooking();
   };
 }
