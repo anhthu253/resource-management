@@ -118,6 +118,11 @@ public class MainController {
         List<Booking> bookings = this.bookingService.getMyBookings(userId);
         return new ResponseEntity<>(this.bookingMapper.mapBookingListToBookingDtoList(bookings), HttpStatus.OK);
     }
+    @GetMapping("/pending-bookings/{userId}")
+    public ResponseEntity<List<BookingDto>> getUserPendingBookings(@PathVariable Long userId) {
+        List<Booking> bookings = this.bookingService.getPendingBookings(userId);
+        return new ResponseEntity<>(this.bookingMapper.mapBookingListToBookingDtoList(bookings), HttpStatus.OK);
+    }
     @PostMapping("/proceed-payment")
     public ResponseEntity<String> proceedPayment(@RequestBody PaymentIntentDto paymentIntentDto) {
         return paymentService.createPaymentIntent(paymentIntentDto);

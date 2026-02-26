@@ -10,6 +10,7 @@ export interface BookingDto {
   bookingId: number;
   bookingNumber: string;
   bookingStatus: string;
+  paymentId: number;
   modificationStatus: string;
   startedAt: Date | null;
   endedAt: Date | null;

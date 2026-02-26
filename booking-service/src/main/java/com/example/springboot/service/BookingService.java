@@ -70,6 +70,9 @@ public class BookingService {
     public Booking getCurrentBooking(Long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow();
     }
+    public List<Booking> getPendingBookings(long userId) {
+        return this.bookingRepository.getPendingBookingsByUserId(userId);
+    }
     public void expirePendingBookings() {
         LocalDateTime now = LocalDateTime.now();
         List<Booking> expiredBookings =

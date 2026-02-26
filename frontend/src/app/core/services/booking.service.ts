@@ -65,4 +65,10 @@ export class BookingService {
       withCredentials: true,
     });
   };
+
+  getPendingBookings = (userId?: number): Observable<BookingDto[]> => {
+    return this.http.get<BookingDto[]>(`http://localhost:8080/booking/pending-bookings/${userId}`, {
+      withCredentials: true,
+    });
+  };
 }

@@ -16,7 +16,8 @@ public class BookingDto {
     private Long bookingId;
     private String bookingNumber;
     private List<ResourceDto> resources;
-    private BookingStatus bookingStaus;
+    private Long paymentId;
+    private BookingStatus bookingStatus;
     private ModificationStatus modificationStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;

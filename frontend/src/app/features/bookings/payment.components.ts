@@ -17,7 +17,7 @@ import {
 } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
 import { PaymentIntentDto } from '../../core/dtos/booking.dto';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { MatButton } from '@angular/material/button';
 import { BookingStateService } from '../../core/services/booking.state.service';
@@ -55,8 +55,8 @@ export class PaymentComponent implements AfterViewInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private bookingService: BookingService,
-    private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
     private dialog: MatDialog,
   ) {}
@@ -121,22 +121,29 @@ export class PaymentComponent implements AfterViewInit {
     if (error) {
       return;
     }
-    const data = this.bookingStateService.getBookingResponse();
-    if (!data) return;
-    this.paymentIntent.bookingId = data?.bookingId;
-    this.paymentIntent.paymentId = data.paymentId;
-    this.paymentIntent.paymentMethodId = paymentMethod?.id;
 
-    this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
-      next: async (res) => {
-        const result = await this.stripe.confirmCardPayment(res);
-        if (result.paymentIntent?.status === 'succeeded') {
-          this.router.navigate(['/booking-summary']);
-        } else this.openDialog('Payment is not processed. Please try again later.');
-      },
-      error: (err) => {
-        this.openDialog(err.error);
-      },
+    this.route.queryParamMap.subscribe((params) => {
+      const bookingId = params.get('bookingId');
+      const paymentId = params.get('paymentId');
+      if (!bookingId || !paymentId) return;
+      this.paymentIntent.bookingId = +bookingId;
+      this.paymentIntent.paymentId = +paymentId;
+      this.paymentIntent.paymentMethodId = paymentMethod?.id;
+      this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
+        next: async (res) => {
+          const result = await this.stripe.confirmCardPayment(res);
+          if (result.paymentIntent?.status === 'succeeded') {
+            this.router.navigate(['/booking-summary'], {
+              queryParams: {
+                bookingId: bookingId,
+              },
+            });
+          } else this.openDialog('Payment is not processed. Please try again later.');
+        },
+        error: (err) => {
+          this.openDialog(err.error);
+        },
+      });
     });
   }
 }

@@ -19,7 +19,9 @@ export class MenuComponent implements OnInit {
         this.selectedIndex = 0;
       } else if (url.startsWith('/my-bookings')) {
         this.selectedIndex = 1;
-      } else if (url.startsWith('/resources')) this.selectedIndex = 2;
+      } else if (url.startsWith('/pending-bookings')) {
+        this.selectedIndex = 2;
+      } else if (url.startsWith('/resources')) this.selectedIndex = 3;
     });
   }
   onTabChange = (event: MatTabChangeEvent) => {
@@ -31,6 +33,9 @@ export class MenuComponent implements OnInit {
         this.router.navigate(['/my-bookings']);
         break;
       case 2:
+        this.router.navigate(['/pending-bookings']);
+        break;
+      case 3:
         this.router.navigate(['/resources']);
         break;
     }

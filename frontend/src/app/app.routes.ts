@@ -7,6 +7,7 @@ import { MyBookingComponent } from './features/bookings/my-booking-component';
 import { PaymentComponent } from './features/bookings/payment.components';
 import { ResourcesComponent } from './features/bookings/resources-component';
 import { MainLayoutComponent } from './layout/main-layout.component';
+import { PendingBookingsComponent } from './features/bookings/pending-bookings-component';
 export const routes: Routes = [
   {
     path: '',
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: 'payment', component: PaymentComponent, canActivate: [PaymentGuard] },
       { path: 'booking-summary', component: BookingSummaryComponent },
       { path: 'my-bookings', component: MyBookingComponent },
+      { path: 'pending-bookings', component: PendingBookingsComponent },
       { path: 'resources', component: ResourcesComponent },
     ],
   },

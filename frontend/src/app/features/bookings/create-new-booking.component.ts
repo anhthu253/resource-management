@@ -248,8 +248,13 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
       this.bookingService.createBooking(postData).subscribe({
         next: (res) => {
-          this.bookingStateService.setBookingResponse(res);
-          this.router.navigate(['/payment']);
+          console.log('navigate to payment with ', res);
+          this.router.navigate(['/payment'], {
+            queryParams: {
+              bookingId: res.bookingId,
+              paymentId: res.paymentId,
+            },
+          });
         },
         error: (err) => {
           this.openFailureAlert(err.error);

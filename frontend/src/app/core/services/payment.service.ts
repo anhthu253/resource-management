@@ -1,20 +1,24 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  CanActivate,
+  Router,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { BookingStateService } from './booking.state.service';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentGuard implements CanActivate {
-  constructor(
-    private bookingStateService: BookingStateService,
-    private router: Router,
-  ) {}
+  constructor(private router: Router) {}
   //users are only allowed to navigate form /new-booking to /payment. Prevent user from typing /payment directly
-  canActivate(): boolean {
-    const bookingId = this.bookingStateService.getBookingResponse()?.bookingId;
+  canActivate(route: ActivatedRouteSnapshot): boolean {
+    const bookingId = route.queryParamMap.get('bookingId');
     if (!bookingId) {
       this.router.navigate(['/new-booking']);
       return false;
     }
+
     return true;
   }
 }
