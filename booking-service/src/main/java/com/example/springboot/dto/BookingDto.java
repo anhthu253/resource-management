@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 public class BookingDto {
     private Long bookingId;
+    private String bookingNumber;
     private List<ResourceDto> resources;
     private BookingStatus bookingStaus;
     private ModificationStatus modificationStatus;

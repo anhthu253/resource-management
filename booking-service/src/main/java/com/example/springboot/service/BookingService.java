@@ -15,9 +15,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import java.util.stream.Collectors;
@@ -43,6 +47,9 @@ public class BookingService {
     public BookingResponseDto createBooking(Booking booking) {
         booking.setBookingStatus(BookingStatus.PENDING_CONFIRMATION);
         booking.setModificationStatus(ModificationStatus.NONE);
+        booking.setCreatedAt(LocalDateTime.now());
+        booking.setExpiredAt(LocalDateTime.now().plusMinutes(15)); //users have 15 minutes to pay
+        booking.setBookingNumber(generateBookingNumber());
         booking = this.bookingRepository.save(booking);
         Payment payment = paymentService.createPayment(booking);
         return new BookingResponseDto(booking.getBookingId(), payment.getPaymentId(), payment.getPaymentStatus());
@@ -63,6 +70,20 @@ public class BookingService {
     public Booking getCurrentBooking(Long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow();
     }
+    public void expirePendingBookings() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Booking> expiredBookings =
+                bookingRepository.findByBookingStatusAndExpiredAtBefore(
+                        BookingStatus.PENDING_CONFIRMATION,
+                        now
+                );
+
+        for (Booking booking : expiredBookings) {
+            booking.setBookingStatus(BookingStatus.EXPIRED);
+        }
+
+        bookingRepository.saveAll(expiredBookings);
+    }
     public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) {
         List<ResourceDto> allResource = getAllResources();
         List<Long> bookedResourceIds = this.bookingRepository
@@ -78,6 +99,12 @@ public class BookingService {
     }
     public List<ResourceDto> getAllResources(){
         return resourceService.getAllResources().block();
+    }
+
+    private String generateBookingNumber(){
+        Long seq = bookingRepository.getBookingSequence();
+        return "BK-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+                + "-" + String.format("%06d", seq);
     }
 
 }

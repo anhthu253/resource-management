@@ -17,6 +17,7 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
+    private String bookingNumber;
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
     private List<BookingLog> logs = new ArrayList<>();
     @ManyToOne
@@ -37,5 +38,7 @@ public class Booking {
     private ModificationStatus modificationStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiredAt;
     private BigDecimal totalPrice;
 }

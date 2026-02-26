@@ -1,7 +1,7 @@
 <mat-spinner *ngIf="bookings.length === 0"></mat-spinner>
 <mat-card *ngFor="let booking of bookings; let i = index" class="booking-card">
   <mat-card-title>
-    <span>Booking {{ booking.bookingId }}</span>
+    <span>Booking {{ booking.bookingNumber }}</span>
     <mat-icon *ngIf="!booking.isPastBooking && (booking?.modificationStatus==='NONE'||booking?.modificationStatus==='MODIFY_FAILED')" (click)="cancelBooking(booking.bookingId)">unsubscribe</mat-icon>
     <mat-icon *ngIf="!booking.isPastBooking && (booking?.modificationStatus==='NONE'||booking?.modificationStatus==='MODIFY_FAILED')" (click)="modifyBooking(booking)">edit</mat-icon>
     <mat-icon *ngIf="!booking.isPastBooking && booking?.modificationStatus==='MODIFY_PENDING'" (click)="trackRefund(booking.bookingId)">track_changes</mat-icon>

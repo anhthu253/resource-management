@@ -70,7 +70,6 @@ export class MyBookingComponent implements OnInit {
   trackRefund = (bookingId: number) => {
     this.refundService.getRefundStatusStream(bookingId).subscribe(
       (status) => {
-        console.log('tracking refund');
         let message = 'We are working on it and will get back to you as soon as possible.';
         if (status) message = status.message;
         this.openDialog(message);

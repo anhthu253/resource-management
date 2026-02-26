@@ -8,6 +8,7 @@ export interface BookingResponseDto {
 
 export interface BookingDto {
   bookingId: number;
+  bookingNumber: string;
   bookingStatus: string;
   modificationStatus: string;
   startedAt: Date | null;
