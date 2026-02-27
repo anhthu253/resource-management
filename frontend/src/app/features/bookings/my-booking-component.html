@@ -1,4 +1,4 @@
-<mat-spinner *ngIf="bookings.length === 0"></mat-spinner>
+<mat-spinner *ngIf="isLoading"></mat-spinner>
 <mat-card *ngFor="let booking of bookings; let i = index" class="booking-card">
   <mat-card-title>
     <span>Booking {{ booking.bookingNumber }}</span>
@@ -23,3 +23,4 @@
     </div>
   </mat-card-content>
 </mat-card>
+<p>{{message}}</p>

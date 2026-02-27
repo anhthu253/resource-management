@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { BookingService } from '../../core/services/booking.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { UserService } from '../../core/services/user.service';
-import { BookingStateService } from '../../core/services/booking.state.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
@@ -19,6 +18,8 @@ import { MatSpinner } from '@angular/material/progress-spinner';
 })
 export class PendingBookingsComponent implements OnInit {
   bookings: BookingDto[] = [];
+  isLoading = false;
+  message = '';
   constructor(
     private router: Router,
     private bookingService: BookingService,
@@ -49,12 +50,17 @@ export class PendingBookingsComponent implements OnInit {
   ngOnInit(): void {
     const userId = this.userService.getUser()?.userId;
     if (userId) {
+      this.isLoading = true;
       this.bookingService.getPendingBookings(userId).subscribe({
         next: (res) => {
+          this.isLoading = false;
+          if (!res.length) this.message = 'You have no pending booking.';
+          else this.message = '';
           this.bookings = res;
           this.cdr.detectChanges();
         },
         error: (err) => {
+          this.isLoading = false;
           console.log(err.error);
         },
       });

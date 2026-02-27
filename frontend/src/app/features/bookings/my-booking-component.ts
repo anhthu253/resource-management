@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { RefundService } from '../../core/services/refund.status.service';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TmplAstRecursiveVisitor } from '@angular/compiler';
 
 @Component({
   standalone: true,
@@ -29,7 +30,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   ],
 })
 export class MyBookingComponent implements OnInit {
+  isLoading = false;
   bookings: (BookingDto & { isPastBooking: boolean })[] = [];
+  message = '';
   today = new Date().toISOString();
   constructor(
     private router: Router,
@@ -81,8 +84,12 @@ export class MyBookingComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.bookingService.getMyBookings(this.user.getUser()?.userId).subscribe({
       next: (res: BookingDto[]) => {
+        this.isLoading = false;
+        if (!res.length) this.message = 'You have no booking confirmed.';
+        else this.message = '';
         this.bookings = res.map((b) => {
           return {
             ...b,
@@ -91,7 +98,9 @@ export class MyBookingComponent implements OnInit {
         });
         this.cdr.detectChanges();
       },
-      error: (err) => {},
+      error: (err) => {
+        this.isLoading = false;
+      },
     });
   }
 }
