@@ -3,45 +3,33 @@ package com.example.springboot.service;
 import com.example.springboot.dto.*;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
-import com.example.springboot.repository.PaymentRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.Refund;
-import com.stripe.model.StripeObject;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
-    private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
     private final ResourceService resourceService;
+    private final BookingEventPublisher bookingEventPublisher;
 
     public BookingService(BookingRepository bookingRepository,
-                          PaymentRepository paymentRepository,
-                          PaymentService paymentService, StripeService stripeService,
-                          ResourceService resourceService,
-                          RefundService refundService) {
+                          PaymentService paymentService,
+                          ResourceService resourceService, BookingEventPublisher bookingEventPublisher) {
         this.bookingRepository = bookingRepository;
-        this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
         this.resourceService = resourceService;
+        this.bookingEventPublisher = bookingEventPublisher;
     }
     @Transactional
     public BookingResponseDto createBooking(Booking booking) {
@@ -61,8 +49,26 @@ public class BookingService {
     }
     public void cancelBooking (long bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        booking.setBookingStatus(BookingStatus.CANCEL_PENDING);
-        bookingRepository.save(booking);
+        booking.setBookingStatus(BookingStatus.CANCELED);
+        try{
+            bookingRepository.save(booking);
+            try{
+                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CANCELED);
+            }
+            catch(Exception ex){
+                log.error("Unsuccessfully deliver booking canceled event to RabbitMQ.");
+            }
+        }
+        catch (Exception e){
+            booking.setBookingStatus(BookingStatus.CONFIRMED); //reverse to active booking
+            try{
+                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CANCEL_FAILED);
+            }
+            catch(Exception ex){
+                log.error("Unsuccessfully deliver failed cancel event to RabbitMQ.");
+            }
+        }
+
     }
     public List<Booking> getMyBookings(long userId){
         return bookingRepository.getBookingsByUserId(userId);
@@ -109,5 +115,6 @@ public class BookingService {
         return "BK-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                 + "-" + String.format("%06d", seq);
     }
+
 
 }

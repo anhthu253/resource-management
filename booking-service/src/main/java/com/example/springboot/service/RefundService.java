@@ -6,6 +6,7 @@ import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
 import com.example.springboot.repository.PaymentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -18,7 +19,7 @@ import reactor.core.publisher.Sinks;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+@Slf4j
 @Service
 public class RefundService {
     @Value("${refund.retry.after}")
@@ -29,14 +30,16 @@ public class RefundService {
     private final Map<Long, Sinks.Many<RefundStatusUpdateDto>> sinks ;
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
+    private final BookingEventPublisher bookingEventPublisher;
     @Autowired
     @Lazy
     private RefundService self; // self proxy for @Async recursion
 
-    public RefundService(StripeService stripeService, BookingRepository bookingRepository, PaymentRepository paymentRepository) {
+    public RefundService(StripeService stripeService, BookingRepository bookingRepository, PaymentRepository paymentRepository, BookingEventPublisher bookingEventPublisher) {
         this.stripeService = stripeService;
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
+        this.bookingEventPublisher = bookingEventPublisher;
         this.sinks = new ConcurrentHashMap<>();
     }
 
@@ -65,6 +68,12 @@ public class RefundService {
                 var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
                 notifyUpdate(update);
                 complete(bookingId);
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish booking modified event to RabbitMQ");
+                }
             }
             else if(status==HttpStatus.TOO_MANY_REQUESTS||status.is5xxServerError()){
                 if(attempt == maxRetries){
@@ -76,6 +85,12 @@ public class RefundService {
                     var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
                     notifyUpdate(update);
                     complete(bookingId);
+                    try{
+                        bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                    }
+                    catch(Exception e){
+                        log.error("Unsucessfully publish modify failed event to RabbitMQ");
+                    }
                 }
 
                 else {
@@ -93,6 +108,12 @@ public class RefundService {
                 var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
                 notifyUpdate(update);
                 complete(bookingId);
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish modify failed event to RabbitMQ");
+                }
             }
         }
         catch(Exception e){
@@ -100,6 +121,12 @@ public class RefundService {
             var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message   );
             notifyUpdate(update);
             complete(bookingId);
+            try{
+                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+            }
+            catch(Exception ex){
+                log.error("Unsucessfully publish modify failed event to RabbitMQ");
+            }
         }
 
     }

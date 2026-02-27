@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Refund Failed</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { color: #d9534f; }
+        .details { background: #f9f9f9; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        ul { margin-top: 5px; }
+        .highlight { font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Booking Refund Failed</h2>
+
+    <p>Hello <span th:text="${customerName}"></span>,</p>
+
+    <p>We were unable to process the refund of <strong th:text="${totalPrice}"></strong> for your modified booking <strong th:text="${bookingNumber}"></strong>.</p>
+
+    <p>Booking period: <strong th:text="${startDate}"></strong> to <strong th:text="${endDate}"></strong></p>
+
+    <p>Resources affected by this refund attempt:</p>
+    <ul>
+        <li th:each="resource : ${resources}" th:text="${resource}"></li>
+    </ul>
+
+    <div class="details">
+        <p>Please contact our support team to resolve this issue as soon as possible.</p>
+        <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
+        <p>Phone: +1-234-567-890</p>
+    </div>
+
+    <p>We apologize for the inconvenience and appreciate your patience.</p>
+
+    <p>Thank you, <br/>The Booking Team</p>
+</div>
+</body>
+</html>

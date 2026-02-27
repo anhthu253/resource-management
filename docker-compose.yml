@@ -1,6 +1,12 @@
 version: '3.9'
 
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
   # Booking Service
   booking-service:
     build:
@@ -16,6 +22,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
       - booking-db
+      - rabbitmq
 
   booking-db:
     image: postgres:17
@@ -68,6 +75,7 @@ services:
     depends_on:
       - booking-service
       - resource-service
+      - rabbitmq
 
   notification-db:
     image: postgres:16

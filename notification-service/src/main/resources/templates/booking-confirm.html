@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { color: #d9534f; }
+        ul { margin-top: 5px; }
+        .details { background: #f9f9f9; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+<h2>Booking Confirmation</h2>
+<p>Hello <span th:text="${customerName}"></span>,</p>
+<p>Your booking number is <strong th:text="${bookingNumber}"></strong>.</p>
+<p>Booking period: <strong th:text="${startDate}"></strong> to <strong th:text="${endDate}"></strong></p>
+<p>Resources you booked:</p>
+<ul>
+    <li th:each="resource : ${resources}" th:text="${resource}"></li>
+</ul>
+<p>Total price: <strong th:text="${totalPrice}"></strong></p>
+<p>Thank you for booking with us!</p>
+</body>
+</html>

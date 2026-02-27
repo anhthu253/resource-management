@@ -2,7 +2,6 @@ package com.example.springboot.service;
 
 import com.example.springboot.dto.PaymentIntentDto;
 import com.example.springboot.dto.PaymentIntentResponseDto;
-import com.example.springboot.dto.RefundStatusUpdateDto;
 import com.example.springboot.dto.StripeErrorResponseDto;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
@@ -12,6 +11,7 @@ import com.stripe.model.Charge;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
 import com.stripe.model.StripeObject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +19,21 @@ import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
 import java.util.Optional;
-
+@Slf4j
 @Service
 public class PaymentService {
     public final PaymentRepository paymentRepository;
     public final BookingRepository bookingRepository;
+    public final BookingEventPublisher bookingEventPublisher;
     private final StripeService stripeService;
     private final RefundService refundService;
     @Value("${refund.retry.after}")
     private long defautRetryAfter;
 
-    public PaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository, StripeService stripeService, RefundService refundService) {
+    public PaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository, BookingEventPublisher bookingEventPublisher, StripeService stripeService, RefundService refundService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.bookingEventPublisher = bookingEventPublisher;
         this.stripeService = stripeService;
         this.refundService = refundService;
     }
@@ -87,6 +89,12 @@ public class PaymentService {
                 payment.setPaymentStatus(PaymentStatus.SUCCEEDED);
                 booking.setBookingStatus(BookingStatus.CONFIRMED);
                 status = HttpStatus.OK;
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CREATED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish created booking event to RabbitMQ");
+                }
             }
 
             case "payment_intent.payment_failed" -> {
@@ -100,6 +108,12 @@ public class PaymentService {
 
                 payment.setPaymentStatus(PaymentStatus.FAILED);
                 status = HttpStatus.INTERNAL_SERVER_ERROR;
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_FAILED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish failed booking event to RabbitMQ");
+                }
             }
 
             // Refund events
@@ -115,11 +129,14 @@ public class PaymentService {
 
                 payment.setPaymentStatus(PaymentStatus.REFUNDED);
                 payment.setRefundedAmount(amount);
-                if(booking.getBookingStatus() == BookingStatus.CANCEL_PENDING)
-                    booking.setBookingStatus(BookingStatus.CANCELED); // reverse booking to active
-                else if(booking.getModificationStatus() == ModificationStatus.MODIFY_PENDING)
-                    booking.setModificationStatus(ModificationStatus.MODIFIED);
+                booking.setModificationStatus(ModificationStatus.MODIFIED);
                 status = HttpStatus.OK;
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish booking modified event to RabbitMQ");
+                }
             }
 
             case "refund.failed" -> {
@@ -133,11 +150,14 @@ public class PaymentService {
                         .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
 
                 payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
-                if(booking.getBookingStatus() == BookingStatus.CANCEL_PENDING)
-                    booking.setBookingStatus(BookingStatus.CONFIRMED); // reverse booking to active
-                else if(booking.getModificationStatus() == ModificationStatus.MODIFY_PENDING)
-                    booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
+                booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
                 status = HttpStatus.INTERNAL_SERVER_ERROR;
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish modify failed event to RabbitMQ");
+                }
             }
             default -> {
                 payment=null;
@@ -147,6 +167,9 @@ public class PaymentService {
         // Save updates
         if(payment != null) paymentRepository.save(payment);
         if (booking != null) bookingRepository.save(booking);
+
+
+
         return status;
     }
     public ResponseEntity<?> createRefund(long bookingId) throws Exception {
@@ -174,6 +197,12 @@ public class PaymentService {
                 bookingRepository.save(booking);
                 payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
                 paymentRepository.save(payment);
+                try{
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                }
+                catch(Exception e){
+                    log.error("Unsucessfully publish modify failed event to RabbitMQ");
+                }
                 ObjectMapper mapper = new ObjectMapper();
                 StripeErrorResponseDto errorResponse = mapper.readValue(refundResponse.body(), StripeErrorResponseDto.class);
                 return new ResponseEntity<>(errorResponse.getError().getMessage(),HttpStatus.BAD_REQUEST);
