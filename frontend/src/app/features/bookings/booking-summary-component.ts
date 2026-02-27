@@ -1,14 +1,7 @@
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { BookingService } from '../../core/services/booking.service';
-import { BookingStateService } from '../../core/services/booking.state.service';
 import { ResourceDto } from '../../core/dtos/resource.dto';
 import { ActivatedRoute, Route } from '@angular/router';
 @Component({

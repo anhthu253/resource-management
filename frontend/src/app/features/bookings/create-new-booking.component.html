@@ -1,35 +1,27 @@
 <h2>{{changeNotification}}</h2>
-<form [formGroup]="bookingFormGroup">
-    <div [formGroup]="periodGroup">
-        <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
-        <app-date-picker dateLabel="Ended at" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
-    </div>
-    <app-multi-select 
-        label="Resources" 
-        [options]="resourceNormalizedList"
-        formControlName="resourceIds"
-    >
-    </app-multi-select>
-</form>
-<div *ngIf="bookingFormGroup.valid">
-        <h2>Booking summary</h2>
-        <div>
-            <label>Resource</label>
-            <ul>
-                <li *ngFor="let selectedResource of selectedResources">
-                    {{ selectedResource.resourceName }}
-                </li>
-            </ul>
+<div class="container">
+    <form [formGroup]="bookingFormGroup">
+        <div [formGroup]="periodGroup">
+            <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
+            <app-date-picker dateLabel="Ended at" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
         </div>
-        <div>
-            <p>Started at: {{periodGroup.get("startedAt")?.value | date:'dd/MM/yyyy HH:mm'}}</p>
-            <p>Ended at: {{periodGroup.get("endedAt")?.value | date:'dd/MM/yyyy HH:mm'}}</p>
+        <div class="row">
+            <app-multi-select 
+            label="Resources" 
+            [options]="resourceNormalizedList"
+            formControlName="resourceIds"
+            >
+            </app-multi-select>
+            <mat-spinner *ngIf="isResourceLoading" [diameter]="50"></mat-spinner>
         </div>
+    </form>
+    <div *ngIf="bookingFormGroup.valid">
         <p>Total price: {{totalPrice | currency}}</p>
     </div>
 
-    <div class="btn-row"b>
+    <div class="row">
         <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
         <button *ngIf="currentBooking?.bookingId" mat-raised-button color="primary" (click)="clearBooking()">New</button>
         <button *ngIf="bookingFormGroup.valid" mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>
     </div>
+</div>

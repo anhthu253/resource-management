@@ -1,4 +1,4 @@
-<mat-form-field>
+<mat-form-field class="multiselect">
     <mat-label>{{label}}</mat-label>
     <mat-select multiple (selectionChange)="onSelect($event)" [(value)]="value" [disabled]="disabled">
         @for (option of options; track $index) {

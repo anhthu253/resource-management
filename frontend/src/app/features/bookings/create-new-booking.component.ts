@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   DestroyRef,
@@ -26,12 +27,14 @@ import { HttpStatusCode } from '@angular/common/http';
 import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
+import { MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   standalone: true,
   selector: 'app-new-booking',
   templateUrl: './create-new-booking.component.html',
   styleUrl: './create-new-booking.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     CommonModule,
@@ -39,11 +42,14 @@ import { NotificationDialog } from '../../core/components/pop-up/notification-co
     MultipleSelection,
     MatButtonModule,
     ConfirmDialog,
+    MatSpinner,
   ],
 })
 export class NewBookingComponent implements OnInit, OnDestroy {
   resourceList: ResourceDto[] = [];
   resourceNormalizedList: { id: number; name: string }[] = [];
+  isResourceLoading = false;
+  availResourceMessage = '';
   totalPrice?: number;
   bookingFormGroup: FormGroup;
   dateFilter = (d: Date | null): boolean => {
@@ -130,17 +136,21 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         'You are modifying an existing booking. Please review and update your details below.';
     }
 
-    this.bookingFormGroup.get('resourceIds')?.disable();
     if (this.periodGroup?.valid) {
-      this.bookingFormGroup.get('resourceIds')?.enable();
       this.fetchResources();
+    } else {
+      this.resourceList = [];
+      this.resourceNormalizedList = [];
+      this.cf.detectChanges();
     }
-
     this.periodGroup?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.periodGroup?.valid) {
-        this.bookingFormGroup.get('resourceIds')?.enable();
         this.fetchResources();
-      } else this.bookingFormGroup.get('resourceIds')?.disable();
+      } else {
+        this.resourceList = [];
+        this.resourceNormalizedList = [];
+        this.cf.detectChanges();
+      }
     });
 
     //update total price upon selecting resources
@@ -175,8 +185,15 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   fetchResources = () => {
     const startedAt = this.periodGroup.get('startedAt')?.value;
     const endedAt = this.periodGroup.get('endedAt')?.value;
+    this.isResourceLoading = true;
     this.bookingService.getAvailableResources(startedAt, endedAt).subscribe({
       next: (res: ResourceDto[]) => {
+        this.isResourceLoading = false;
+        if (!res.length) {
+          this.bookingFormGroup
+            .get('resourceIds')
+            ?.setErrors({ empty: 'There is no resources available during this period.' });
+        }
         if (this.currentBooking && this.currentBooking.bookingId) {
           this.resourceList = [...res, ...this.currentBooking.resources];
         } else {
@@ -191,6 +208,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         this.cf.detectChanges();
       },
       error: (err) => {
+        this.isResourceLoading = false;
         console.log('error type', err.status, err.message);
       },
     });

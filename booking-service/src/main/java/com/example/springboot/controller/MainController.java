@@ -3,18 +3,15 @@ package com.example.springboot.controller;
 import com.example.springboot.dto.*;
 import com.example.springboot.mapper.BookingMapper;
 import com.example.springboot.model.Booking;
-
 import com.example.springboot.service.BookingService;
 import com.example.springboot.service.PaymentService;
 import com.example.springboot.service.RefundService;
-import com.example.springboot.service.StripeService;
-
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
-import com.stripe.model.*;
-
+import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.StripeObject;
 import com.stripe.net.Webhook;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -36,16 +33,14 @@ import java.util.NoSuchElementException;
 public class MainController {
     private final BookingService bookingService;
     private final PaymentService paymentService;
-    private final StripeService stripeService;
     private final BookingMapper bookingMapper;
     private final RefundService refundService;
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
 
-    public MainController(BookingService bookingService, PaymentService paymentService, StripeService stripeService, BookingMapper bookingMapper, RefundService refundService) {
+    public MainController(BookingService bookingService, PaymentService paymentService, BookingMapper bookingMapper, RefundService refundService) {
         this.bookingService = bookingService;
         this.paymentService = paymentService;
-        this.stripeService = stripeService;
         this.bookingMapper = bookingMapper;
         this.refundService = refundService;
     }

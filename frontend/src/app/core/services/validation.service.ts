@@ -91,7 +91,7 @@ export class ValidationService {
       return { invalidDate: true };
     }
 
-    if (endedCtrl.dirty && startedAt >= endedAt) {
+    if (startedAt >= endedAt) {
       startedCtrl.setErrors({ invalidStart: 'Start date has to be before end date' });
       endedCtrl.setErrors({ invalidEnd: 'End date has to be after start date' });
       return { invalidDateRange: true };
@@ -112,7 +112,6 @@ export class ValidationService {
       resourceCtrl.setErrors({ resourceRequired: 'Please select at least one resource' });
       return { required: true };
     }
-
     return null;
   };
 }

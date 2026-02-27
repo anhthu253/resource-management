@@ -1,6 +1,7 @@
 package com.example.springboot.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
