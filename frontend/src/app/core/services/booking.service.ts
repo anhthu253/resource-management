@@ -54,6 +54,11 @@ export class BookingService {
     });
   };
 
+  getTotalPrice = (booking: BookingDto): Observable<number> => {
+    return this.http.post<number>('http://localhost:8080/booking/total-price', booking, {
+      withCredentials: true,
+    });
+  };
   getCurrentBooking = (bookingId: number): Observable<BookingDto> => {
     return this.http.get<BookingDto>(`http://localhost:8080/booking/current-booking/${bookingId}`, {
       withCredentials: true,

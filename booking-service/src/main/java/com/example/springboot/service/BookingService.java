@@ -3,17 +3,17 @@ package com.example.springboot.service;
 import com.example.springboot.dto.*;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
-
 import jakarta.transaction.Transactional;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.stream.Collectors;
 @Slf4j
 @Service
@@ -93,6 +93,14 @@ public class BookingService {
 
         bookingRepository.saveAll(expiredBookings);
     }
+    public double getTotalPricePerBooking(BookingDto booking){
+        Instant startedInstant = booking.getStartedAt().atZone(ZoneId.systemDefault()).toInstant();
+        Instant endedInstant = booking.getEndedAt().atZone(ZoneId.systemDefault()).toInstant();
+        long diffSeconds = ChronoUnit.SECONDS.between(startedInstant, endedInstant);
+        return booking.getResources().stream()
+                .map(resource -> getBasePricePerSecond(diffSeconds, resource.getBasePrice(), resource.getPriceUnit()))
+                .reduce(0.0, Double::sum);
+    }
     public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) {
         List<ResourceDto> allResource = getAllResources();
         List<Long> bookedResourceIds = this.bookingRepository
@@ -116,5 +124,19 @@ public class BookingService {
                 + "-" + String.format("%06d", seq);
     }
 
+    private double getBasePricePerSecond(long periodInsSeconds, double basePrice, PriceUnit priceUnit){
 
+        switch(priceUnit){
+            case hourly -> {
+                return periodInsSeconds * basePrice / (60 * 60);
+            }
+            case daily -> {
+                return periodInsSeconds* basePrice / ( 60 * 60 * 24);
+            }
+            default -> { //price per booking
+                return basePrice;
+            }
+        }
+
+    }
 }

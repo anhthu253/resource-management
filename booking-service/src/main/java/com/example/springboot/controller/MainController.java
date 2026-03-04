@@ -63,6 +63,12 @@ public class MainController {
             return new ResponseEntity<>("Failed to create booking", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/total-price")
+    public ResponseEntity<Double> getTotalPrice(@RequestBody BookingDto bookingDto){
+        double totalPrice = this.bookingService.getTotalPricePerBooking(bookingDto);
+        return ResponseEntity.status(HttpStatus.OK).body(totalPrice);
+    }
     @PostMapping("/update")
     public ResponseEntity<?> updateBooking(@RequestBody Long bookingId) {
             try{

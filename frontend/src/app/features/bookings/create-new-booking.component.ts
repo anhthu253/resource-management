@@ -23,7 +23,6 @@ import { BookingStateService } from '../../core/services/booking.state.service';
 import { UserService } from '../../core/services/user.service';
 import { ValidationService } from '../../core/services/validation.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
-import { HttpStatusCode } from '@angular/common/http';
 import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
@@ -154,9 +153,12 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     });
 
     //update total price upon selecting resources
-    this.bookingFormGroup.get('resourceIds')?.valueChanges.subscribe((selectedResourceIds) => {
-      if (selectedResourceIds && selectedResourceIds.length)
-        this.totalPrice = this.getTotalPrice(selectedResourceIds);
+    this.bookingFormGroup.get('resourceIds')?.valueChanges.subscribe(() => {
+      this.bookingService
+        .getTotalPrice({ ...this.periodGroup.value, resources: this.selectedResources })
+        .subscribe((price) => {
+          this.totalPrice = price;
+        });
     });
   }
 
@@ -212,25 +214,6 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         console.log('error type', err.status, err.message);
       },
     });
-  };
-
-  private getTotalPrice = (selectedResourceIds: number[]): number => {
-    return this.resourceList
-      .filter((resource) => selectedResourceIds.includes(resource.resourceId))
-      .reduce((acc, curr) => acc + this.getPricePerResource(curr.basePrice, curr.priceUnit), 0);
-  };
-
-  private getPricePerResource = (pricePerUnit: number, priceUnit: string): number => {
-    if (this.periodGroup.invalid) return 0;
-    const { startedAt, endedAt } = this.periodGroup.value;
-    const diffMs = endedAt.getTime() - startedAt.getTime();
-    let diffUnits = 1;
-    if (priceUnit === 'hourly') {
-      diffUnits = diffMs / (1000 * 60 * 60);
-    } else if (priceUnit === 'daily') {
-      diffUnits = diffMs / (1000 * 60 * 60 * 24);
-    }
-    return pricePerUnit * diffUnits;
   };
 
   onCancelBooking = () => {
