@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { CommonModule } from '@angular/common';
@@ -13,6 +20,7 @@ import { RefundService } from '../../core/services/refund.status.service';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TmplAstRecursiveVisitor } from '@angular/compiler';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -34,6 +42,7 @@ export class MyBookingComponent implements OnInit {
   bookings: (BookingDto & { isPastBooking: boolean })[] = [];
   message = '';
   today = new Date().toISOString();
+  private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
     private bookingService: BookingService,
@@ -78,29 +87,37 @@ export class MyBookingComponent implements OnInit {
         this.openDialog(message);
       },
       (error) => {
-        console.log(error.err);
+        this.openDialog(
+          error.err || error.message || 'Failed to fetch refund status. Please try again later.',
+        );
       },
     );
   };
 
   ngOnInit(): void {
     this.isLoading = true;
-    this.bookingService.getMyBookings(this.user.getUser()?.userId).subscribe({
-      next: (res: BookingDto[]) => {
-        this.isLoading = false;
-        if (!res.length) this.message = 'You have no booking confirmed.';
-        else this.message = '';
-        this.bookings = res.map((b) => {
-          return {
-            ...b,
-            isPastBooking: !!b.startedAt && new Date(b.startedAt).getTime() < new Date().getTime(),
-          };
-        });
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isLoading = false;
-      },
-    });
+    this.bookingService
+      .getMyBookings(this.user.getUser()?.userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: BookingDto[]) => {
+          this.isLoading = false;
+          if (!res.length) this.message = 'You have no booking confirmed.';
+          else this.message = '';
+          this.bookings = res.map((b) => {
+            return {
+              ...b,
+              isPastBooking:
+                !!b.startedAt && new Date(b.startedAt).getTime() < new Date().getTime(),
+            };
+          });
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.message =
+            err.error || err.message || 'Failed to fetch your bookings. Please try again later.';
+        },
+      });
   }
 }

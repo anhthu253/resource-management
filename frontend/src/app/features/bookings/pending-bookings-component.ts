@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { UserService } from '../../core/services/user.service';
@@ -7,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -20,6 +28,7 @@ export class PendingBookingsComponent implements OnInit {
   bookings: BookingDto[] = [];
   isLoading = false;
   message = '';
+  private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
     private bookingService: BookingService,
@@ -51,19 +60,25 @@ export class PendingBookingsComponent implements OnInit {
     const userId = this.userService.getUser()?.userId;
     if (userId) {
       this.isLoading = true;
-      this.bookingService.getPendingBookings(userId).subscribe({
-        next: (res) => {
-          this.isLoading = false;
-          if (!res.length) this.message = 'You have no pending booking.';
-          else this.message = '';
-          this.bookings = res;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.isLoading = false;
-          console.log(err.error);
-        },
-      });
+      this.bookingService
+        .getPendingBookings(userId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.isLoading = false;
+            if (!res.length) this.message = 'You have no pending booking.';
+            else this.message = '';
+            this.bookings = res;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.message =
+              err.error ||
+              err.message ||
+              'Failed to fetch pending bookings. Please try again later.';
+          },
+        });
     }
   }
 }

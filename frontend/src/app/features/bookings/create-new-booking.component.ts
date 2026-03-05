@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { take } from 'rxjs';
 import { DatePicker } from '../../core/components/date-picker/date-picker.component';
 import { MultipleSelection } from '../../core/components/multi-select-dropdown/multi-select-dropdown.component';
@@ -64,7 +64,6 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
     private bookingService: BookingService,
     private userService: UserService,
     private bookingStateService: BookingStateService,
@@ -91,6 +90,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     this.bookingStateService.clearBooking();
     this.changeNotification = '';
   }
+
   get periodGroup(): FormGroup {
     return this.bookingFormGroup.get('period') as FormGroup;
   }
@@ -188,34 +188,38 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     const startedAt = this.periodGroup.get('startedAt')?.value;
     const endedAt = this.periodGroup.get('endedAt')?.value;
     this.isResourceLoading = true;
-    this.bookingService.getAvailableResources(startedAt, endedAt).subscribe({
-      next: (res: ResourceDto[]) => {
-        this.isResourceLoading = false;
-        if (!res.length) {
-          this.bookingFormGroup
-            .get('resourceIds')
-            ?.setErrors({ empty: 'There is no resources available during this period.' });
-        }
-        if (this.currentBooking && this.currentBooking.bookingId) {
-          this.resourceList = [...res, ...this.currentBooking.resources];
-        } else {
-          this.resourceList = res;
-        }
-        this.resourceNormalizedList = this.resourceList.map((entry) => {
-          return {
-            id: entry.resourceId,
-            name: `${entry.resourceName} ${entry.basePrice} ${entry.priceUnit}`,
-          };
-        });
-        this.cf.detectChanges();
-      },
-      error: (err) => {
-        this.isResourceLoading = false;
-        console.log('error type', err.status, err.message);
-      },
-    });
+    this.bookingService
+      .getAvailableResources(startedAt, endedAt)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: ResourceDto[]) => {
+          this.isResourceLoading = false;
+          if (!res.length) {
+            this.bookingFormGroup
+              .get('resourceIds')
+              ?.setErrors({ empty: 'There is no resources available during this period.' });
+          }
+          if (this.currentBooking && this.currentBooking.bookingId) {
+            this.resourceList = [...res, ...this.currentBooking.resources];
+          } else {
+            this.resourceList = res;
+          }
+          this.resourceNormalizedList = this.resourceList.map((entry) => {
+            return {
+              id: entry.resourceId,
+              name: `${entry.resourceName} ${entry.basePrice} ${entry.priceUnit}`,
+            };
+          });
+          this.cf.detectChanges();
+        },
+        error: (err) => {
+          this.isResourceLoading = false;
+          this.openFailureAlert('Failed to fetch available resources. Please try again later.');
+        },
+      });
   };
 
+  //cancel an unfinished booking and clear the form. If there is an existing booking, navigate to my-bookings page.
   onCancelBooking = () => {
     this.clearBooking();
     if (this.currentBooking && this.currentBooking.bookingId) {
@@ -249,7 +253,6 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
       this.bookingService.createBooking(postData).subscribe({
         next: (res) => {
-          console.log('navigate to payment with ', res);
           this.router.navigate(['/payment'], {
             queryParams: {
               bookingId: res.bookingId,
@@ -258,7 +261,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
           });
         },
         error: (err) => {
-          this.openFailureAlert(err.error);
+          this.openFailureAlert(err.error || err.message);
         },
       });
     });
@@ -270,14 +273,17 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       return; // if user hasn't changed the current booking, stop proceeding further
     }
 
-    this.bookingService.updateBooking(this.currentBooking!.bookingId).subscribe({
-      next: (res) => {
-        this.openSucceededRefundConfirm(res);
-      },
-      error: (err) => {
-        this.openFailureAlert(err.error); //refund failed due to stripe. Will be tried in the backend.
-      },
-    });
+    this.bookingService
+      .updateBooking(this.currentBooking!.bookingId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.openSucceededRefundConfirm(res);
+        },
+        error: (err) => {
+          this.openFailureAlert(err.error); //refund failed due to stripe. Will be tried in the backend.
+        },
+      });
   };
 
   toPayment = () => {

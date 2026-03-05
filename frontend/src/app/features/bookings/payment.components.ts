@@ -4,6 +4,8 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
+  inject,
   OnInit,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -23,6 +25,7 @@ import { MatButton } from '@angular/material/button';
 import { BookingStateService } from '../../core/services/booking.state.service';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatDialog } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -52,6 +55,8 @@ export class PaymentComponent implements AfterViewInit {
   private cardNumber!: StripeCardNumberElement;
   private cardExpiry!: StripeCardExpiryElement;
   private cardCvc!: StripeCardCvcElement;
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private router: Router,
@@ -129,21 +134,26 @@ export class PaymentComponent implements AfterViewInit {
       this.paymentIntent.bookingId = +bookingId;
       this.paymentIntent.paymentId = +paymentId;
       this.paymentIntent.paymentMethodId = paymentMethod?.id;
-      this.bookingService.createPaymentIntent(this.paymentIntent).subscribe({
-        next: async (res) => {
-          const result = await this.stripe.confirmCardPayment(res);
-          if (result.paymentIntent?.status === 'succeeded') {
-            this.router.navigate(['/booking-summary'], {
-              queryParams: {
-                bookingId: bookingId,
-              },
-            });
-          } else this.openDialog('Payment is not processed. Please try again later.');
-        },
-        error: (err) => {
-          this.openDialog(err.error);
-        },
-      });
+      this.bookingService
+        .createPaymentIntent(this.paymentIntent)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: async (res) => {
+            const result = await this.stripe.confirmCardPayment(res);
+            if (result.paymentIntent?.status === 'succeeded') {
+              this.router.navigate(['/booking-summary'], {
+                queryParams: {
+                  bookingId: bookingId,
+                },
+              });
+            } else this.openDialog('Payment is not processed. Please try again later.');
+          },
+          error: (err) => {
+            this.openDialog(
+              err.error || err.message || 'Failed to process payment. Please try again later.',
+            );
+          },
+        });
     });
   }
 }
