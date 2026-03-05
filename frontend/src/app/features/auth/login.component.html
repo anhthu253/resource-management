@@ -5,5 +5,7 @@
     </div>
           
     <button mat-raised-button color="primary" (click)="onLogin()">Login</button>
-    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+    @if (errorMessage){
+      <p class="error">{{ errorMessage }}</p>
+    }
   </div>

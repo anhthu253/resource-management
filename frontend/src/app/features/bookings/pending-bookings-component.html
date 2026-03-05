@@ -8,9 +8,11 @@
 
   <mat-card-content>
     <div class="resources">
-      <div *ngFor="let resource of booking.resources">
-        {{ resource.resourceName }}
-      </div>
+      @for (resource of booking.resources; track resource.resourceId){
+        <div>
+          {{ resource.resourceName }}
+        </div>
+      }
     </div>
 
     <div class="dates">

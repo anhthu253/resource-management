@@ -15,13 +15,19 @@
             <mat-spinner *ngIf="isResourceLoading" [diameter]="50"></mat-spinner>
         </div>
     </form>
-    <div *ngIf="bookingFormGroup.valid">
-        <p>Total price: {{totalPrice | currency}}</p>
-    </div>
-
+    @if (bookingFormGroup.valid){
+        <div>
+            <p>Total price: {{totalPrice | currency}}</p>
+        </div>
+    }
+    
     <div class="row">
         <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
-        <button *ngIf="currentBooking?.bookingId" mat-raised-button color="primary" (click)="clearBooking()">New</button>
-        <button *ngIf="bookingFormGroup.valid" mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>
+        @if (currentBooking?.bookingId){
+            <button mat-raised-button color="primary" (click)="clearBooking()">New</button>
+        }
+        @if (bookingFormGroup.valid){
+            <button mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>
+        }
     </div>
 </div>

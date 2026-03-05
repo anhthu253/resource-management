@@ -5,9 +5,11 @@
         <div>
             <label>Resource</label>
             <ul>
-                <li *ngFor="let resource of booking?.resources">
-                    {{ resource.resourceName}}
-                </li>
+                @for (resource of booking?.resources; track resource.resourceId){
+                    <li>
+                        {{ resource.resourceName}}
+                    </li>
+                }
             </ul>
 
             <p>Started at: {{booking?.startedAt | date:'dd/MM/yyyy HH:mm'}}</p>
