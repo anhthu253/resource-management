@@ -18,8 +18,8 @@ import { BookingStateService } from '../../core/services/booking.state.service';
 import { MatDialog } from '@angular/material/dialog';
 import { RefundService } from '../../core/services/refund.status.service';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
+import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TmplAstRecursiveVisitor } from '@angular/compiler';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -54,15 +54,27 @@ export class MyBookingComponent implements OnInit {
   ) {}
 
   cancelBooking = (bookingId: number) => {
-    this.bookingService.cancelBooking(bookingId).subscribe({
-      next: () => {
-        this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.log('Booking was not canceled');
-      },
-    });
+    const dialogRef = this.dialog
+      .open(ConfirmDialog, {
+        width: '350px',
+        data: {
+          message: 'Are you sure you want to cancel this booking?',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.bookingService.cancelBooking(bookingId).subscribe({
+            next: () => {
+              this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              console.log('Booking was not canceled');
+            },
+          });
+        }
+      });
   };
 
   modifyBooking = (booking: BookingDto) => {

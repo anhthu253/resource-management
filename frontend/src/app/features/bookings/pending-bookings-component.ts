@@ -15,6 +15,8 @@ import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   standalone: true,
@@ -31,21 +33,34 @@ export class PendingBookingsComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
+    private dialog: MatDialog,
     private bookingService: BookingService,
     private userService: UserService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   cancelBooking = (bookingId: number) => {
-    this.bookingService.cancelBooking(bookingId).subscribe({
-      next: () => {
-        this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.log('Booking was not canceled');
-      },
-    });
+    const dialogRef = this.dialog
+      .open(ConfirmDialog, {
+        width: '350px',
+        data: {
+          message: 'Are you sure you want to cancel this booking?',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.bookingService.cancelBooking(bookingId).subscribe({
+            next: () => {
+              this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              console.log('Booking was not canceled');
+            },
+          });
+        }
+      });
   };
 
   modifyBooking = (booking: BookingDto) => {
