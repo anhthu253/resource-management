@@ -40,7 +40,7 @@ public class BookingService {
         booking.setBookingNumber(generateBookingNumber());
         booking = this.bookingRepository.save(booking);
         Payment payment = paymentService.createPayment(booking);
-        return new BookingResponseDto(booking.getBookingId(), payment.getPaymentId(), payment.getPaymentStatus());
+        return new BookingResponseDto(booking.getBookingId(), booking.getBookingNumber(), payment.getPaymentId());
     }
     public void updateBooking(long bookingId) throws Exception{
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
