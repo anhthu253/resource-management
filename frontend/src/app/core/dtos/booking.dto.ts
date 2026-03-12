@@ -2,8 +2,8 @@ import { ResourceDto } from './resource.dto';
 
 export interface BookingResponseDto {
   bookingId: number;
+  bookingNumber: string;
   paymentId: number;
-  paymentStatus: string;
 }
 
 export interface BookingDto {
