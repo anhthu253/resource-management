@@ -1,0 +1,148 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+  # Booking Service
+  booking-service:
+    build:
+      context: ./booking-service
+      dockerfile: Dockerfile.dev
+    container_name: booking-service
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./booking-service:/app
+    environment:
+      BOOKING_DB_URL: jdbc:postgresql://booking-db:5432/bookingdb
+      BOOKING_DB_USERNAME: ${BOOKING_DB_USERNAME}
+      BOOKING_DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      STRIPE_TEST_SECRET: ${STRIPE_TEST_SECRET}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      RESOURCE_SERVICE_URL: ${RESOURCE_SERVICE_URL}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      - booking-db
+      - resource-service
+      - rabbitmq
+
+  booking-db:
+    image: postgres:17
+    container_name: booking-db
+    environment:
+      POSTGRES_USER: ${BOOKING_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BOOKING_DB_PASSWORD}
+      POSTGRES_DB: bookingdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+
+  # Resource Service
+  resource-service:
+    build:
+      context: ./resource-service
+      dockerfile: Dockerfile.dev
+    container_name: resource-service
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./resource-service:/app
+    environment:
+      RESOURCE_DB_URL: jdbc:postgresql://resource-db:5432/resourcedb
+      RESOURCE_DB_USERNAME: ${RESOURCE_DB_USERNAME}
+      RESOURCE_DB_PASSWORD: ${RESOURCE_DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - resource-db
+
+  resource-db:
+    image: postgres:17
+    container_name: resource-db
+    environment:
+      POSTGRES_USER: resource_user
+      POSTGRES_PASSWORD: resource_pass
+      POSTGRES_DB: resourcedb
+    ports:
+      - "5433:5432"
+    volumes:
+      - resource-db-data:/var/lib/postgresql/data
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile.dev
+    container_name: notification-service
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./notification-service:/app
+    depends_on:
+      booking-service:
+        condition: service_started
+      resource-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      NOTIFICATION_DB_URL: jdbc:postgresql://notification-db:5432/notificationdb
+      NOTIFICATION_DB_USERNAME: ${NOTIFICATION_DB_USERNAME}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      SENDER_EMAIL_PASSWORD: ${SENDER_EMAIL_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+
+  notification-db:
+    image: postgres:17
+    container_name: notification-db
+    restart: always
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: ${NOTIFICATION_DB_USERNAME}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app:cached
+      - /app/node_modules 
+    stdin_open: true
+    tty: true
+    environment:
+      - NG_CLI_ANALYTICS=false
+    depends_on:
+      - booking-service
+
+volumes:
+  booking-db-data:
+  resource-db-data:
+  notification-db-data:

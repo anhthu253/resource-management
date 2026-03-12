@@ -1,0 +1,18 @@
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# install maven
+RUN apt-get update && apt-get install -y maven
+
+# copy pom first for dependency caching
+COPY pom.xml .
+
+RUN mvn dependency:go-offline
+
+# copy source
+COPY src ./src
+
+EXPOSE 8080
+
+CMD ["mvn", "spring-boot:run"]
