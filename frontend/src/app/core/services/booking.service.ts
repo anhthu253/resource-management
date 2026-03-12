@@ -3,23 +3,26 @@ import { ResourceDto } from '../dtos/resource.dto';
 import { BookingDto, BookingResponseDto, PaymentIntentDto } from '../dtos/booking.dto';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
-import { environment } from '../../../environments/environment';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BookingService {
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService,
+  ) {}
 
   getAllResources = (): Observable<ResourceDto[]> => {
-    return this.http.get<ResourceDto[]>(`${environment.apiUrl}/booking/all-resources`, {
+    return this.http.get<ResourceDto[]>(`${this.configService.apiUrl}/booking/all-resources`, {
       withCredentials: true,
     });
   };
 
   getAvailableResources = (startedAt: Date, endedAt: Date): Observable<ResourceDto[]> => {
     return this.http.post<ResourceDto[]>(
-      `${environment.apiUrl}/booking/available-resources`,
+      `${this.configService.apiUrl}/booking/available-resources`,
       { startedAt, endedAt },
       { withCredentials: true },
     );
@@ -27,7 +30,7 @@ export class BookingService {
 
   createBooking = (bookingRequest: BookingDto): Observable<BookingResponseDto> => {
     return this.http.post<BookingResponseDto>(
-      `${environment.apiUrl}/booking/create`,
+      `${this.configService.apiUrl}/booking/create`,
       bookingRequest,
       {
         withCredentials: true,
@@ -36,45 +39,58 @@ export class BookingService {
   };
 
   updateBooking = (bookingId: number): Observable<string> => {
-    return this.http.post<string>(`${environment.apiUrl}/booking/update`, bookingId, {
+    return this.http.post<string>(`${this.configService.apiUrl}/booking/update`, bookingId, {
       withCredentials: true,
       responseType: 'text' as 'json',
     });
   };
 
   cancelBooking = (bookingId: number): Observable<void> => {
-    return this.http.post<void>(`${environment.apiUrl}/booking/cancel`, bookingId, {
+    return this.http.post<void>(`${this.configService.apiUrl}/booking/cancel`, bookingId, {
       withCredentials: true,
     });
   };
 
   createPaymentIntent = (paymentIntent: PaymentIntentDto): Observable<string> => {
-    return this.http.post<string>(`${environment.apiUrl}/booking/proceed-payment`, paymentIntent, {
-      withCredentials: true,
-      responseType: 'text' as 'json',
-    });
+    return this.http.post<string>(
+      `${this.configService.apiUrl}/booking/proceed-payment`,
+      paymentIntent,
+      {
+        withCredentials: true,
+        responseType: 'text' as 'json',
+      },
+    );
   };
 
   getTotalPrice = (booking: BookingDto): Observable<number> => {
-    return this.http.post<number>(`${environment.apiUrl}/booking/total-price`, booking, {
+    return this.http.post<number>(`${this.configService.apiUrl}/booking/total-price`, booking, {
       withCredentials: true,
     });
   };
   getCurrentBooking = (bookingId: number): Observable<BookingDto> => {
-    return this.http.get<BookingDto>(`${environment.apiUrl}/booking/current-booking/${bookingId}`, {
-      withCredentials: true,
-    });
+    return this.http.get<BookingDto>(
+      `${this.configService.apiUrl}/booking/current-booking/${bookingId}`,
+      {
+        withCredentials: true,
+      },
+    );
   };
 
   getMyBookings = (userId?: number): Observable<BookingDto[]> => {
-    return this.http.get<BookingDto[]>(`${environment.apiUrl}/booking/my-bookings/${userId}`, {
-      withCredentials: true,
-    });
+    return this.http.get<BookingDto[]>(
+      `${this.configService.apiUrl}/booking/my-bookings/${userId}`,
+      {
+        withCredentials: true,
+      },
+    );
   };
 
   getPendingBookings = (userId?: number): Observable<BookingDto[]> => {
-    return this.http.get<BookingDto[]>(`${environment.apiUrl}/booking/pending-bookings/${userId}`, {
-      withCredentials: true,
-    });
+    return this.http.get<BookingDto[]>(
+      `${this.configService.apiUrl}/booking/pending-bookings/${userId}`,
+      {
+        withCredentials: true,
+      },
+    );
   };
 }

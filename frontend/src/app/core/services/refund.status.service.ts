@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { ConfigService } from './config.service';
 
 export interface RefundStatus {
   bookingId: number;
@@ -12,12 +12,15 @@ export interface RefundStatus {
   providedIn: 'root',
 })
 export class RefundService {
-  constructor(private zone: NgZone) {}
+  constructor(
+    private zone: NgZone,
+    private configService: ConfigService,
+  ) {}
 
   getRefundStatusStream(bookingId: number): Observable<RefundStatus> {
     return new Observable<RefundStatus>((observer) => {
       const eventSource = new EventSource(
-        `${environment.apiUrl}/booking/refund/status/${bookingId}`,
+        `${this.configService.apiUrl}/booking/refund/status/${bookingId}`,
         { withCredentials: true },
       );
 

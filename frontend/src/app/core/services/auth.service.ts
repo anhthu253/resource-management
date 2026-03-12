@@ -2,19 +2,22 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UserDto } from '../dtos/user.dto';
-import { environment } from '../../../environments/environment.prod';
+import { ConfigService } from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService,
+  ) {}
   login(data: { username: string; password: string }): Observable<UserDto> {
-    return this.http.post<UserDto>(`${environment.apiUrl}/auth/authenticate`, data, {
+    return this.http.post<UserDto>(`${this.configService.apiUrl}/auth/authenticate`, data, {
       withCredentials: true,
     });
   }
   logout(): Observable<void> {
     return this.http.post<void>(
-      `${environment.apiUrl}/auth/logout`,
+      `${this.configService.apiUrl}/auth/logout`,
       {},
       {
         withCredentials: true,
@@ -22,7 +25,7 @@ export class AuthService {
     );
   }
   getCurrentUser(): Observable<UserDto> {
-    return this.http.get<UserDto>(`${environment.apiUrl}/auth/current-user`, {
+    return this.http.get<UserDto>(`${this.configService.apiUrl}/auth/current-user`, {
       withCredentials: true,
     });
   }
