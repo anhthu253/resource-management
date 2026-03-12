@@ -16,58 +16,58 @@ public class NotificationService {
     private TemplateEngine templateEngine;
     @RabbitListener(queues = "booking.created.queue")
     public void handleBookingCreated(BookingEvent event) {
-        String to = "thu.nguyen253@t-online.de"; //event.getUserEmail();
+        String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
         String htmlContent = templateEngine.process("booking-confirm", context);
         try{
             emailService.sendEmail(to,"Booking Confirmation", htmlContent);
         }
         catch (Exception e){
-            log.error("Cannot send confirmation email due to:", e.getMessage());
+            log.error("Cannot send confirmation email to " + event.getUserEmail() + " due to: ", e.getMessage());
         }
 
     }
     @RabbitListener(queues = "cancel.succeeded.queue")
     public void handleBookingCanceled(BookingEvent event){
-        String to = "thu.nguyen253@t-online.de"; //event.getUserEmail();
+        String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
         String htmlContent = templateEngine.process("booking-canceled", context);
         try{
             emailService.sendEmail(to,"Booking Cancellation Confirmation", htmlContent);
         }
         catch (Exception e){
-            log.error("Cannot send booking canceled confirmation email due to:", e.getMessage());
+            log.error("Cannot send booking canceled confirmation email to " + event.getUserEmail() + " due to: ", e.getMessage());
         }
     }
 
     @RabbitListener(queues = "cancel.failed.queue")
     public void handleBookingCancelFailed(BookingEvent event){
-        String to = "thu.nguyen253@t-online.de"; //event.getUserEmail();
+        String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
         String htmlContent = templateEngine.process("booking-cancel-failed", context);
         try{
             emailService.sendEmail(to,"Booking Cancellation Failed", htmlContent);
         }
         catch (Exception e){
-            log.error("Cannot send email of a failed booking cancellation due to:", e.getMessage());
+            log.error("Cannot send email of a failed booking cancellation to " + event.getUserEmail()+ " due to: ", e.getMessage());
         }
     }
 
     @RabbitListener(queues = "modify.succeeded.queue")
     public void handleBookingRefunded(BookingEvent event){
-        String to = "thu.nguyen253@t-online.de"; //event.getUserEmail();
+        String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
         String htmlContent = templateEngine.process("booking-refunded", context);
         try{
             emailService.sendEmail(to,"Booking Refund Confirmation", htmlContent);
         }
         catch (Exception e){
-            log.error("Cannot send email of a refunded booking due to:", e.getMessage());
+            log.error("Cannot send email of a refunded booking to " + event.getUserEmail() + " due to: ", e.getMessage());
         }
     }
     @RabbitListener(queues = "modify.failed.queue")
     public void handleBookingRefundFailed(BookingEvent event){
-        String to = "thu.nguyen253@t-online.de"; //event.getUserEmail();
+        String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
 
         String htmlContent = templateEngine.process("booking-refund-failed", context);
@@ -75,7 +75,7 @@ public class NotificationService {
             emailService.sendEmail(to,"Booking Refund Failed", htmlContent);
         }
         catch (Exception e){
-            log.error("Cannot send email of a failed refund due to:", e.getMessage());
+            log.error("Cannot send email of a failed refund to " + event.getUserEmail() + " due to: ", e.getMessage());
         }
     }
     private Context createBookingEmailContext(BookingEvent event){
