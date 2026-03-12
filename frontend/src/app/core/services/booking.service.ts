@@ -3,6 +3,7 @@ import { ResourceDto } from '../dtos/resource.dto';
 import { BookingDto, BookingResponseDto, PaymentIntentDto } from '../dtos/booking.dto';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -11,14 +12,14 @@ export class BookingService {
   constructor(private http: HttpClient) {}
 
   getAllResources = (): Observable<ResourceDto[]> => {
-    return this.http.get<ResourceDto[]>('http://localhost:8080/booking/all-resources', {
+    return this.http.get<ResourceDto[]>(`${environment.apiUrl}/booking/all-resources`, {
       withCredentials: true,
     });
   };
 
   getAvailableResources = (startedAt: Date, endedAt: Date): Observable<ResourceDto[]> => {
     return this.http.post<ResourceDto[]>(
-      'http://localhost:8080/booking/available-resources',
+      `${environment.apiUrl}/booking/available-resources`,
       { startedAt, endedAt },
       { withCredentials: true },
     );
@@ -26,7 +27,7 @@ export class BookingService {
 
   createBooking = (bookingRequest: BookingDto): Observable<BookingResponseDto> => {
     return this.http.post<BookingResponseDto>(
-      'http://localhost:8080/booking/create',
+      `${environment.apiUrl}/booking/create`,
       bookingRequest,
       {
         withCredentials: true,
@@ -35,44 +36,44 @@ export class BookingService {
   };
 
   updateBooking = (bookingId: number): Observable<string> => {
-    return this.http.post<string>(`http://localhost:8080/booking/update`, bookingId, {
+    return this.http.post<string>(`${environment.apiUrl}/booking/update`, bookingId, {
       withCredentials: true,
       responseType: 'text' as 'json',
     });
   };
 
   cancelBooking = (bookingId: number): Observable<void> => {
-    return this.http.post<void>('http://localhost:8080/booking/cancel', bookingId, {
+    return this.http.post<void>(`${environment.apiUrl}/booking/cancel`, bookingId, {
       withCredentials: true,
     });
   };
 
   createPaymentIntent = (paymentIntent: PaymentIntentDto): Observable<string> => {
-    return this.http.post<string>('http://localhost:8080/booking/proceed-payment', paymentIntent, {
+    return this.http.post<string>(`${environment.apiUrl}/booking/proceed-payment`, paymentIntent, {
       withCredentials: true,
       responseType: 'text' as 'json',
     });
   };
 
   getTotalPrice = (booking: BookingDto): Observable<number> => {
-    return this.http.post<number>('http://localhost:8080/booking/total-price', booking, {
+    return this.http.post<number>(`${environment.apiUrl}/booking/total-price`, booking, {
       withCredentials: true,
     });
   };
   getCurrentBooking = (bookingId: number): Observable<BookingDto> => {
-    return this.http.get<BookingDto>(`http://localhost:8080/booking/current-booking/${bookingId}`, {
+    return this.http.get<BookingDto>(`${environment.apiUrl}/booking/current-booking/${bookingId}`, {
       withCredentials: true,
     });
   };
 
   getMyBookings = (userId?: number): Observable<BookingDto[]> => {
-    return this.http.get<BookingDto[]>(`http://localhost:8080/booking/my-bookings/${userId}`, {
+    return this.http.get<BookingDto[]>(`${environment.apiUrl}/booking/my-bookings/${userId}`, {
       withCredentials: true,
     });
   };
 
   getPendingBookings = (userId?: number): Observable<BookingDto[]> => {
-    return this.http.get<BookingDto[]>(`http://localhost:8080/booking/pending-bookings/${userId}`, {
+    return this.http.get<BookingDto[]>(`${environment.apiUrl}/booking/pending-bookings/${userId}`, {
       withCredentials: true,
     });
   };
