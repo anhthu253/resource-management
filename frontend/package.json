@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "vercel-build": "ng build && sed -i 's|\\$API_URL|'\"$API_URL\"'|g' dist/browser/config.template.json",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
