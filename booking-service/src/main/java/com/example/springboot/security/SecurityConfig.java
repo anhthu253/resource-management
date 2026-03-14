@@ -1,5 +1,6 @@
 package com.example.springboot.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    @Value("${frontend.test.environment.url}")
+    private String appTestEnvironmentUrl;
+    @Value("${frontend.prod.environment.url}")
+    private String appProdEnvironmentUrl;
+    @Value("${frontend.docker.url}")
+    private String appDockerEnvironmentUrl;
 
     public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
@@ -29,7 +36,7 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of("http://localhost:4200","http://localhost:8080")); // Angular dev server
+            config.setAllowedOrigins(List.of(appTestEnvironmentUrl, appDockerEnvironmentUrl, appProdEnvironmentUrl)); // Angular dev server
             config.setAllowCredentials(true); // IMPORTANT for cookies
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("*"));
