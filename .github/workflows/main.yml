@@ -1,0 +1,48 @@
+name: Build and Deploy Services
+
+on:
+  push:
+    branches:
+      - main  # trigger when pushing to main branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}  # your GCP project ID
+      SERVICE_ACCOUNT: ${{ secrets.GCP_SA_EMAIL }} # the service account email used with WIF
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # ---------------- Authenticate to GCP via OIDC ----------------
+      - name: Authenticate to GCP via OIDC
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: "projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider"
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      # ---------------- Booking Service ----------------
+      - name: Build and push Booking Service
+        run: |
+          docker build -f booking-service/Dockerfile.prod \
+            -t gcr.io/$PROJECT_ID/booking-service:latest booking-service
+          docker push gcr.io/$PROJECT_ID/booking-service:latest
+
+      # ---------------- Resource Service ----------------
+      - name: Build and push Resource Service
+        run: |
+          docker build -f resource-service/Dockerfile.prod \
+            -t gcr.io/$PROJECT_ID/resource-service:latest resource-service
+          docker push gcr.io/$PROJECT_ID/resource-service:latest
+
+      # ---------------- Notification Service ----------------
+      - name: Build and push Notification Service
+        run: |
+          docker build -f notification-service/Dockerfile.prod \
+            -t gcr.io/$PROJECT_ID/notification-service:latest notification-service
+          docker push gcr.io/$PROJECT_ID/notification-service:latest
