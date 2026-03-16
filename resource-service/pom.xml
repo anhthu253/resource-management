@@ -63,10 +63,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<layers>true</layers> <!-- enable layered jar -->
-					<excludeDevtools>true</excludeDevtools> <!-- remove dev-only tools -->
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
