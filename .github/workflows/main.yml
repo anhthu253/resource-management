@@ -25,21 +25,21 @@ jobs:
 
       - name: Build booking service
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/booking-service \
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/booking-service \
             -f ./booking-service/Dockerfile.deploy \
             ./booking-service
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/booking-service
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/booking-service
 
       - name: Build resource service
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-service \
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/resource-service \
             -f ./resource-service/Dockerfile.deploy \
             ./resource-service
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-service
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/resource-service
 
       - name: Build notification service
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/notification-service \
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/notification-service \
             -f ./notification-service/Dockerfile.deploy \
             ./notification-service
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/notification-service
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/resource-repo/notification-service
