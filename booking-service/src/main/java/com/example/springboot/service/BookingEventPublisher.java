@@ -19,9 +19,9 @@ public class BookingEventPublisher {
         this.resourceService = resourceService;
     }
 
-    public void publishBookingEvent(Booking booking, MQEventType bookingEventType){
+    public void publishBookingEvent(Booking booking, MQEventType bookingEventType) throws Exception {
         User user = booking.getUser();
-        List<String> resourceNames = resourceService.getAllResources().block().stream()
+        List<String> resourceNames = resourceService.getAllResources().stream()
                 .filter(r -> booking.getResourceIds().contains(r.getResourceId()))
                 .map(r -> r.getResourceName())
                 .collect(Collectors.toList());

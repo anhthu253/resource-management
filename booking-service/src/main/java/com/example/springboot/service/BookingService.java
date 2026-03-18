@@ -101,7 +101,7 @@ public class BookingService {
                 .map(resource -> getBasePricePerSecond(diffSeconds, resource.getBasePrice(), resource.getPriceUnit()))
                 .reduce(0.0, Double::sum);
     }
-    public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) {
+    public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) throws Exception {
         List<ResourceDto> allResource = getAllResources();
         List<Long> bookedResourceIds = this.bookingRepository
                 .getBookings(bookingPeriodDto.startedAt(), bookingPeriodDto.endedAt())
@@ -114,8 +114,8 @@ public class BookingService {
                 .filter(resource -> !bookedResourceIds.contains(resource.getResourceId()))
                 .collect(Collectors.toList());
     }
-    public List<ResourceDto> getAllResources(){
-        return resourceService.getAllResources().block();
+    public List<ResourceDto> getAllResources() throws Exception {
+        return resourceService.getAllResources();
     }
 
     private String generateBookingNumber(){

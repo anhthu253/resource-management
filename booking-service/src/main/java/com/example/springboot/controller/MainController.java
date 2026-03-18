@@ -45,12 +45,22 @@ public class MainController {
         this.refundService = refundService;
     }
     @GetMapping("/all-resources")
-    public ResponseEntity<List<ResourceDto>> getAllResources() {
-        return new ResponseEntity<>(this.bookingService.getAllResources(), HttpStatus.OK);
+    public ResponseEntity<?> getAllResources() {
+        try{
+            return new ResponseEntity<>(this.bookingService.getAllResources(), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return new ResponseEntity<>("Failed to get resources", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @PostMapping("/available-resources")
-    public ResponseEntity<List<ResourceDto>> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
-        return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);
+    public ResponseEntity<?> getAvailableResource(@RequestBody BookingPeriodDto bookingPeriodDto) {
+        try {
+            return new ResponseEntity<>(this.bookingService.getAvailableResources(bookingPeriodDto), HttpStatus.OK);
+        }
+        catch (Exception ex){
+            return new ResponseEntity<>("Failed to get available resources", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @PostMapping("/create")
     public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingRequestDto) {
@@ -109,9 +119,10 @@ public class MainController {
     }
 
     @GetMapping("/current-booking/{bookingId}")
-    public ResponseEntity<BookingDto> getCurrentBooking(@PathVariable Long bookingId) {
+    public ResponseEntity<?> getCurrentBooking(@PathVariable Long bookingId) {
         Booking booking = bookingService.getCurrentBooking(bookingId);
         return ResponseEntity.ok(bookingMapper.mapBookingToBookingDto(booking));
+
     }
 
     @GetMapping("/my-bookings/{userId}")

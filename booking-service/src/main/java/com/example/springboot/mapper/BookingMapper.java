@@ -20,7 +20,7 @@ public class BookingMapper {
         this.resourceService = resourceService;
     }
     public Booking mapBookingDtoToBooking(BookingDto bookingDto){
-        List<ResourceDto> allResource = resourceService.getAllResources().block();
+        if(bookingDto == null) return null;
         var booking = new Booking();
         booking.setBookingStatus(bookingDto.getBookingStatus());
         booking.setModificationStatus(bookingDto.getModificationStatus());
@@ -33,20 +33,26 @@ public class BookingMapper {
         booking.setResourceIds(resourceIds);
         return booking;
     }
-    public BookingDto mapBookingToBookingDto(Booking booking){
-        List<ResourceDto> allResource = resourceService.getAllResources().block();
-        var bookingDto = new BookingDto();
-        bookingDto.setBookingId(booking.getBookingId());
-        bookingDto.setBookingNumber(booking.getBookingNumber());
-        bookingDto.setPaymentId(booking.getPayment().getPaymentId());
-        bookingDto.setBookingStatus(booking.getBookingStatus());
-        bookingDto.setModificationStatus(booking.getModificationStatus());
-        bookingDto.setStartedAt(booking.getStartedAt());
-        bookingDto.setEndedAt(booking.getEndedAt());
-        bookingDto.setTotalPrice(booking.getTotalPrice());
-        List<ResourceDto> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).collect(Collectors.toList());
-        bookingDto.setResources(resources);
-        return bookingDto;
+    public BookingDto mapBookingToBookingDto(Booking booking) {
+        if(booking == null) return null;
+        try {
+            List<ResourceDto> allResource = resourceService.getAllResources();
+            var bookingDto = new BookingDto();
+            bookingDto.setBookingId(booking.getBookingId());
+            bookingDto.setBookingNumber(booking.getBookingNumber());
+            bookingDto.setPaymentId(booking.getPayment().getPaymentId());
+            bookingDto.setBookingStatus(booking.getBookingStatus());
+            bookingDto.setModificationStatus(booking.getModificationStatus());
+            bookingDto.setStartedAt(booking.getStartedAt());
+            bookingDto.setEndedAt(booking.getEndedAt());
+            bookingDto.setTotalPrice(booking.getTotalPrice());
+            List<ResourceDto> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).collect(Collectors.toList());
+            bookingDto.setResources(resources);
+            return bookingDto;
+        }
+        catch (Exception ex){
+            return null;
+        }
     }
 
     public List<BookingDto> mapBookingListToBookingDtoList(List<Booking> bookings){
