@@ -11,4 +11,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 # JVM memory: 256m initial, 384m max
-ENTRYPOINT ["java","-Xms256m","-Xmx384m","-XX:+UseContainerSupport","-jar","app.jar"]
+ENTRYPOINT ["java","-Dreactor.netty.http3=false","-XX:+UseContainerSupport","-jar","app.jar"]
