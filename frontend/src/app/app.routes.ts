@@ -8,6 +8,7 @@ import { PaymentComponent } from './features/bookings/payment.components';
 import { ResourcesComponent } from './features/bookings/resources-component';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { PendingBookingsComponent } from './features/bookings/pending-bookings-component';
+import { RegisterComponent } from './features/auth/register.component';
 export const routes: Routes = [
   {
     path: '',
@@ -15,6 +16,7 @@ export const routes: Routes = [
     children: [
       // { path: 'dashboard', component: DashboardComponent },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
+      { path: 'register', component: RegisterComponent },
       { path: 'login', component: LoginComponent },
       { path: 'new-booking', component: NewBookingComponent },
       { path: 'payment', component: PaymentComponent, canActivate: [PaymentGuard] },

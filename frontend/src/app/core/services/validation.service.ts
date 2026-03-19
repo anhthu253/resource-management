@@ -5,6 +5,67 @@ import { AbstractControl, FormGroup, ValidationErrors } from '@angular/forms';
   providedIn: 'root',
 })
 export class ValidationService {
+  firstNameValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value as string;
+    if (!value) return { required: 'Please enter your first name.' };
+    return null;
+  };
+
+  lastNameValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value as string;
+    if (!value) return { required: 'Please enter your last name.' };
+    return null;
+  };
+
+  emailValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value as string;
+    if (!value) return { required: 'Please enter your email address.' };
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const result = emailRegex.test(value) ? null : { email: 'Please enter a valid email address.' };
+    return result;
+  };
+
+  strongPasswordValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (!value) return { required: 'Please enter a password' };
+
+    const hasUpper = /[A-Z]/.test(value);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+    const hasMinLen = value.length >= 8;
+
+    const valid = hasUpper && hasSpecial && hasMinLen;
+    return valid
+      ? null
+      : {
+          strongPassword:
+            'Password must contain an uppercase letter, a special character, and be at least 8 characters long',
+        };
+  };
+
+  passwordMatchValidator(group: FormGroup): ValidationErrors | null {
+    const passwordCtrl = group.get('password');
+    const confirmCtrl = group.get('confirmPassword');
+
+    if (!passwordCtrl || !confirmCtrl) return null;
+
+    const password = passwordCtrl.value;
+    const confirm = confirmCtrl.value;
+
+    if (password && confirm && password !== confirm) {
+      confirmCtrl.setErrors({ passwordMismatch: 'Passwords do not match' });
+      return { passwordMismatch: true };
+    } else {
+      if (!confirm && confirmCtrl.dirty && password) {
+        confirmCtrl.setErrors({ required: 'Please confirm your password' });
+        return { required: true };
+      }
+      confirmCtrl.setErrors(null);
+    }
+
+    return null;
+  }
+
   visaCardValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value.replace(/\s+/g, '');
 

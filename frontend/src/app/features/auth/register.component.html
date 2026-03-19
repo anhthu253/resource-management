@@ -1,0 +1,19 @@
+  <div class="registercontainer">
+    <div class ="register-inputs" [formGroup]="registerForm">
+        <div class="row">
+          <app-input label="First Name" formControlName="firstName"></app-input>
+          <app-input label="Last Name" formControlName="lastName"></app-input>
+        </div>
+        <div class="column">
+          <app-input label="Telephone" formControlName="telephone"></app-input>
+          <app-input type="email" label="E-Mail" formControlName="email" autocomplete="off"></app-input>
+          <app-input type="password" label="Password" formControlName="password" autocomplete="new-password"></app-input>
+          <app-input type="password" label="Confirm Password" formControlName="confirmPassword"></app-input>
+        </div>
+    </div>
+          
+    <button mat-raised-button color="primary" (click)="onRegister()">Send</button>
+    @if (errorMessage){
+      <p class="error">{{ errorMessage }}</p>
+    }
+</div>

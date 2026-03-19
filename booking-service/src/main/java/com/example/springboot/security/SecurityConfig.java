@@ -52,7 +52,7 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf.disable())
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/auth/authenticate", "/booking/webhooks/stripe").permitAll()
+                            .requestMatchers("/auth/authenticate", "/auth/register", "/booking/webhooks/stripe").permitAll()
                             .anyRequest().authenticated())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

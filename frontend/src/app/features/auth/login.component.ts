@@ -2,14 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatInput } from '../../core/components/input/input.component';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 @Component({
   standalone: true,
   selector: 'app-login',
-  imports: [ReactiveFormsModule, CommonModule, MatInput, MatButton],
+  imports: [RouterLink, ReactiveFormsModule, CommonModule, MatInput, MatButton],
   templateUrl: './login.component.html',
   styles: `
     .login-input-row {

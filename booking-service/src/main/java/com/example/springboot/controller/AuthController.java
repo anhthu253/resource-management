@@ -1,11 +1,15 @@
 package com.example.springboot.controller;
 import com.example.springboot.dto.AuthRequestDto;
 import com.example.springboot.dto.UserDto;
+import com.example.springboot.mapper.UserMapper;
 import com.example.springboot.security.BookingUserDetailsService;
 import com.example.springboot.security.CustomUserDetails;
 import com.example.springboot.security.JwtUtil;
+import com.example.springboot.service.UserService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
@@ -18,16 +22,34 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationManager authManager;
     private final BookingUserDetailsService userDetailsService;
+    private final UserService userService;
+    private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
 
-    public AuthController(AuthenticationManager authManager, BookingUserDetailsService userDetailsService, JwtUtil jwtUtil) {
+    public AuthController(AuthenticationManager authManager, BookingUserDetailsService userDetailsService, UserService userService, UserMapper userMapper, JwtUtil jwtUtil) {
         this.authManager = authManager;
         this.userDetailsService = userDetailsService;
+        this.userService = userService;
+        this.userMapper = userMapper;
         this.jwtUtil = jwtUtil;
     }
     @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
     public ResponseEntity<?> handleNonUnique(Exception ex) {
         return ResponseEntity.badRequest().body("Multiple users found where only one expected");
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> createUser(@RequestBody UserDto userDto){
+        try{
+            userService.createUser(userMapper.mapUserDtoToUser(userDto));
+            return ResponseEntity.ok().body("");
+        }
+        catch(IllegalArgumentException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+        catch(DataIntegrityViolationException ex){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
+        }
     }
     @PostMapping("/authenticate")
     public ResponseEntity<UserDto> createToken(@RequestBody AuthRequestDto request) throws Exception {

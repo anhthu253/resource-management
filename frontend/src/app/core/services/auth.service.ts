@@ -24,6 +24,10 @@ export class AuthService {
       },
     );
   }
+  createUser(user: UserDto): Observable<UserDto> {
+    return this.http.post<UserDto>(`${this.configService.apiUrl}/auth/register`, user);
+  }
+
   getCurrentUser(): Observable<UserDto> {
     return this.http.get<UserDto>(`${this.configService.apiUrl}/auth/current-user`, {
       withCredentials: true,

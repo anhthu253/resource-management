@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Self } from '@a
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -16,7 +16,7 @@ export class MatInput implements ControlValueAccessor, OnInit, OnDestroy {
   @Input() label: string = '';
   @Input() placeholder: string = '';
   @Input() type: string = 'text';
-
+  @Input() autocomplete: string = 'off';
   value: any;
   error: string | null = null;
   disabled: boolean = false;
@@ -34,12 +34,14 @@ export class MatInput implements ControlValueAccessor, OnInit, OnDestroy {
     const control = this.ngControl.control;
     if (!control) return;
 
-    // Subscribe to statusChanges so we always get up-to-date errors
-    this.sub = control.statusChanges.pipe(distinctUntilChanged()).subscribe((v) => {
-      const errors = control.errors;
-      this.error = errors ? (Object.values(errors)[0] as string) : null;
-      this.cdr.markForCheck();
-    });
+    // Subscribe to statusChanges and valueChanges so we always get up-to-date errors
+    this.sub = merge(control.statusChanges, control.valueChanges)
+      .pipe(distinctUntilChanged())
+      .subscribe((v) => {
+        const errors = control.errors;
+        this.error = errors ? (Object.values(errors)[0] as string) : null;
+        this.cdr.markForCheck();
+      });
   }
 
   ngOnDestroy() {
