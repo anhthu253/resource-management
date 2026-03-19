@@ -23,7 +23,6 @@ import { BookingStateService } from '../../core/services/booking.state.service';
 import { UserService } from '../../core/services/user.service';
 import { ValidationService } from '../../core/services/validation.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
-import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatSpinner } from '@angular/material/progress-spinner';
@@ -40,7 +39,6 @@ import { MatSpinner } from '@angular/material/progress-spinner';
     DatePicker,
     MultipleSelection,
     MatButtonModule,
-    ConfirmDialog,
     MatSpinner,
   ],
 })
