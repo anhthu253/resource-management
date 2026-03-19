@@ -74,8 +74,8 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       {
         period: fb.group(
           {
-            startedAt: [null, Validators.required],
-            endedAt: [null, Validators.required],
+            startedAt: [null],
+            endedAt: [null],
           },
           { validators: validationService.dateRangeValidator },
         ),
@@ -173,7 +173,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
 
   openFailureAlert = (message: string) => {
-    const dialogRef = this.dialog.open(NotificationDialog, {
+    this.dialog.open(NotificationDialog, {
       width: '350px',
       data: {
         message: message,
@@ -212,6 +212,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.isResourceLoading = false;
+          this.cf.detectChanges();
           this.openFailureAlert('Failed to fetch available resources. Please try again later.');
         },
       });
