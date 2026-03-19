@@ -40,6 +40,7 @@ export class ResourcesComponent {
         },
         error: (err) => {
           this.isLoading = false;
+          this.cdr.detectChanges();
           this.message =
             err.error || err.message || 'Failed to fetch resources. Please try again later.';
           console.log(err);
