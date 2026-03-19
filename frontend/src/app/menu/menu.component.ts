@@ -15,28 +15,25 @@ export class MenuComponent implements OnInit {
   ngOnInit(): void {
     this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
       const url = this.router.url;
-      if (url.startsWith('/new-booking')) {
-        this.selectedIndex = 0;
-      } else if (url.startsWith('/my-bookings')) {
-        this.selectedIndex = 1;
-      } else if (url.startsWith('/pending-bookings')) {
-        this.selectedIndex = 2;
-      } else if (url.startsWith('/resources')) this.selectedIndex = 3;
+      if (url.startsWith('/resources')) this.selectedIndex = 0;
+      else if (url.startsWith('/new-booking')) this.selectedIndex = 1;
+      else if (url.startsWith('/my-bookings')) this.selectedIndex = 2;
+      else if (url.startsWith('/pending-bookings')) this.selectedIndex = 3;
     });
   }
   onTabChange = (event: MatTabChangeEvent) => {
     switch (event.index) {
       case 0:
-        this.router.navigate(['/new-booking']);
+        this.router.navigate(['/resources']);
         break;
       case 1:
-        this.router.navigate(['/my-bookings']);
+        this.router.navigate(['/new-booking']);
         break;
       case 2:
-        this.router.navigate(['/pending-bookings']);
+        this.router.navigate(['/my-bookings']);
         break;
       case 3:
-        this.router.navigate(['/resources']);
+        this.router.navigate(['/pending-bookings']);
         break;
     }
   };

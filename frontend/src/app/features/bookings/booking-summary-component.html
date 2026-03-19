@@ -1,5 +1,5 @@
 <div>
-    <h2>Your payment of {{booking?.totalPrice | currency}} has been successfully procceeded</h2>
+    <h2>Your booking has been successfully created.</h2>
     <div>
         <p>Following is your booking summary</p>
         <div>
@@ -16,5 +16,6 @@
             <p>Ended at: {{booking?.endedAt | date:'dd/MM/yyyy HH:mm'}}</p>
         </div>
         <p>Total price: {{booking?.totalPrice | currency}}</p>
+        <p>We will send you a confirmation email shortly.</p>
     </div>
 </div>

@@ -13,12 +13,16 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { Router } from '@angular/router';
+import { MatButton } from '@angular/material/button';
+import { MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   standalone: true,
   selector: 'app-resources',
   templateUrl: './resources-component.html',
-  imports: [MatTableModule, MatPaginatorModule, CommonModule],
+  styleUrl: './resources-component.css',
+  imports: [MatTableModule, MatPaginatorModule, MatButton, MatSpinner, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     table {
@@ -37,6 +41,7 @@ export class ResourcesComponent implements OnInit {
 
   constructor(
     private bookingService: BookingService,
+    private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -61,4 +66,7 @@ export class ResourcesComponent implements OnInit {
         },
       });
   }
+  goToBooking = () => {
+    this.router.navigate(['/new-booking']);
+  };
 }

@@ -26,6 +26,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   selector: 'app-my-booking',
   templateUrl: './my-booking-component.html',
+  styleUrl: './my-booking-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
