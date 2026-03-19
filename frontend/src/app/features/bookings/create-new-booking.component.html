@@ -1,7 +1,7 @@
 <h2>{{changeNotification}}</h2>
 <div class="container">
-    <form [formGroup]="bookingFormGroup">
-        <div [formGroup]="periodGroup">
+    <form [formGroup]="bookingFormGroup" class="column">
+        <div [formGroup]="periodGroup" class="column">
             <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
             <app-date-picker dateLabel="Ended at" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
         </div>
@@ -21,7 +21,7 @@
         </div>
     }
     
-    <div class="row">
+    <div class="row buttons">
         <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
         @if (currentBooking?.bookingId){
             <button mat-raised-button color="primary" (click)="clearBooking()">New</button>

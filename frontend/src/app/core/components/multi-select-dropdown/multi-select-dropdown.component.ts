@@ -1,7 +1,8 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Self } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatError, MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { Subscription } from 'rxjs';
 
@@ -10,7 +11,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-multi-select',
   templateUrl: './multi-select-dropdown.component.html',
   styleUrl: './multi-select-dropdown.component.css',
-  imports: [MatSelectModule, MatOptionModule, MatFormFieldModule],
+  imports: [MatSelectModule, MatOptionModule, MatFormFieldModule, MatInputModule],
 })
 export class MultipleSelection implements ControlValueAccessor, OnInit, OnDestroy {
   @Input() options: { id: number; name: string }[] = [];

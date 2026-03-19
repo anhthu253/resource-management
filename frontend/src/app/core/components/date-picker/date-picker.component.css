@@ -2,3 +2,9 @@
     color:red;
     font-size: 10pt;
 }
+
+.container {
+    display: flex;
+    gap: 16px;
+    flex-flow: row wrap;
+}

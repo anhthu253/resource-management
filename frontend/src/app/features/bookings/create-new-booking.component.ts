@@ -212,6 +212,9 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.isResourceLoading = false;
+          this.bookingFormGroup
+            .get('resourceIds')
+            ?.setErrors({ noConnection: 'Internal server error. Please try again later.' });
           this.cf.detectChanges();
           this.openFailureAlert('Failed to fetch available resources. Please try again later.');
         },

@@ -1,13 +1,14 @@
 .row{
     display:flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 16px;
 }
-.error{
-    color:red
-}
-.container{
-    display: flex;
+.column{
+    display:flex;
     flex-direction: column;
-    gap: 16px; 
+    gap: 16px;
+}
+
+.buttons{
+    padding-top:32px;
 }
