@@ -128,36 +128,34 @@ export class ValidationService {
     const startedAt = startedCtrl.value;
     const endedAt = endedCtrl.value;
 
-    startedCtrl.setErrors(null);
-    endedCtrl.setErrors(null);
-    group.setErrors(null);
-
-    if (!startedAt) {
-      startedCtrl.setErrors({ required: 'This field is required' });
+    if (startedCtrl.dirty && !startedAt) {
+      startedCtrl.setErrors({ required: 'Please select a start date' });
       return { required: true };
     }
 
     if (!endedAt) {
-      endedCtrl.setErrors({ required: 'This field is required' });
+      endedCtrl.setErrors({ required: 'Please select an end date' });
       return { required: true };
     }
 
-    if (startedAt <= new Date()) {
+    if (startedAt && startedAt <= new Date()) {
       startedCtrl.setErrors({ startedInThePast: 'Start date can not be the past' });
       return { invalidDate: true };
     }
 
-    if (endedAt <= new Date()) {
+    if (endedAt && endedAt <= new Date()) {
       endedCtrl.setErrors({ endedInThePast: 'End date can not be the past' });
       return { invalidDate: true };
     }
 
-    if (startedAt >= endedAt) {
+    if (startedAt && endedAt && startedAt >= endedAt) {
       startedCtrl.setErrors({ invalidStart: 'Start date has to be before end date' });
       endedCtrl.setErrors({ invalidEnd: 'End date has to be after start date' });
       return { invalidDateRange: true };
     }
-
+    startedCtrl.setErrors(null);
+    endedCtrl.setErrors(null);
+    group.setErrors(null);
     return null;
   }
   bookingFormValidation = (formGroup: FormGroup): ValidationErrors | null => {
