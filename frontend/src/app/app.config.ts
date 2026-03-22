@@ -8,6 +8,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { timeoutInterceptor } from './core/services/timeout-interceptor';
 import { ConfigService } from './core/services/config.service';
+import { authInterceptor } from './core/services/auth-interceptor';
 
 const configService = new ConfigService();
 
@@ -19,7 +20,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([timeoutInterceptor])),
+    provideHttpClient(withInterceptors([timeoutInterceptor, authInterceptor])),
     { provide: ConfigService, useValue: configService },
     {
       provide: APP_INITIALIZER,
