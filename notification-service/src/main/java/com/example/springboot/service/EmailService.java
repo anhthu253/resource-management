@@ -52,11 +52,12 @@ public class EmailService {
             notificationEmail.setRetryAttempts(notificationEmail.getRetryAttempts() + 1);
             notificationEmail.setLastRetryAt(java.time.LocalDateTime.now());
             sendEmail(notificationEmail);
+            notificationRepository.save(notificationEmail);
         }
         else{
             notificationEmail.setStatus(NotificationStatus.FAILED);
+            notificationRepository.save(notificationEmail);
         }
-        notificationRepository.save(notificationEmail);
     }
 
     @Scheduled(fixedDelayString = "${email.retry-delay}") // every 5 minute
