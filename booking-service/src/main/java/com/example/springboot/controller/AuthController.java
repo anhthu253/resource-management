@@ -38,6 +38,11 @@ public class AuthController {
         return ResponseEntity.badRequest().body("Multiple users found where only one expected");
     }
 
+    @GetMapping("/ping")
+    public ResponseEntity<Void> Ping()
+    {
+        return ResponseEntity.ok().build();
+    }
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto){
         try{
