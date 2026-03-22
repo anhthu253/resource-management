@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "booking-service/**"
+      - "resource-service/**"
+      - "notification-service/**"
 
 jobs:
   build-and-push:
