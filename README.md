@@ -58,27 +58,55 @@ Availability filtering is performed by the **Booking Service**, which queries it
 **Responsibilities**
 - Receiving booking, payment, and refund events via **RabbitMQ**
 - Sending email notifications to users
+- Persisting a copy of each sent email in the database
 
 This service is decoupled to allow future asynchronous or event-driven communication.
 
----
+**Email Persistence**
+
+Every email attempt is stored in the database with a status:
+
+- **PENDING** – email queued for sending
+- **SENT** – email successfully sent
+- **FAILED** – email failed after all retries
+- **RETRYING** – email is currently being retried
+
+Each email record is updated throughout its lifecycle to reflect its current state.
+
+**Retry Mechanism**
+
+- If an email fails during sending (e.g., RabbitMQ consumer processing failure):
+    - The service retries sending the email up to **3 attempts**
+    - During retry attempts, the status is set to **RETRYING**
+    - Each attempt result is recorded and persisted
+    - After **3 failed attempts**, the status is updated to **FAILED**
+- Status updates are saved to the database after each attempt
+
+**Scheduled Retry Processing**
+
+- A background scheduler runs every **5 minutes**
+- It scans the database for emails with status **RETRYING**
+- Attempts to resend those emails
+- Updates the email status based on the outcome of each retry
+
 
 ## End-to-End Booking & Payment Flow
 
 ### 1. User Login
-The user authenticates through the Angular frontend and gains access to the booking interface.
+The user authenticates through the Angular frontend using a username and password. Upon successful authentication, the server issues an **HTTP-only session cookie** to maintain the user's session. This cookie is secured with the `HttpOnly` and `Secure` flags to prevent cross-site scripting (XSS) attacks and ensure transmission over HTTPS only. The session remains active until it naturally expires based on the configured session timeout. Once the session expires, the user is automatically logged out, and subsequent requests require re-authentication.
 
 ---
 
 ### 2. Resource Availability Search
-1. The user navigates to the **New Booking** page.
-2. User selects **start date** and **end date**
-3. Frontend sends a POST request to the **Booking Service**
-4. The Booking Service:
+1. The user navigates to the **Resources** page where all resources are listed with their **base price** and **price unit**.
+2. By clicking the **Create a booking** button, the user is redirected to the **New Booking** page.
+3. User selects **start date** and **end date**
+4. Frontend sends a POST request to the **Booking Service**
+5. The Booking Service:
     - Requests all resources from the **Resource Service**
     - Queries its own booking repository
     - Filters out unavailable resources for the selected time period
-5. Frontend displays **only available resources**
+6. Frontend displays **only available resources**
 
 ---
 
@@ -237,7 +265,7 @@ This **event-driven approach** provides several advantages:
 
 ---
 
-## Dockerized Setup
+## Dockerized Setup (Local Development Only)
 
 The entire platform can be started using **Docker Compose**.
 
@@ -251,6 +279,73 @@ Each service uses its own database and persistent volume.
 
 ---
 
+## Deployment Architecture
+
+### Frontend
+- Hosted on **Vercel**
+- Each push to the frontend repository triggers an automatic **Vercel build and deployment**
+- The frontend communicates with backend services via public HTTPS endpoints
+
+---
+
+### Backend Services
+
+**Deployment Platform:**
+- All backend services are containerized and deployed on **Google Cloud Run**
+
+**CI/CD Pipeline:**
+- Each push to backend repositories triggers **GitHub Actions**
+- GitHub Actions:
+    - Builds Docker images for each service
+    - Pushes the images to **Google Artifact Registry**
+- **Cloud Run** pulls and deploys the services from Artifact Registry
+
+**Communication:**
+- Services communicate via REST (synchronous) and **RabbitMQ** (asynchronous messaging)
+
+---
+
+### Databases
+
+- **Booking DB** → hosted on **Supabase**
+- **Resource DB** → hosted on **Supabase**
+- **Notification DB** → hosted on **Aiven**
+
+Each service connects to its respective database using environment variables.
+
+---
+
+### Message Broker
+
+- **RabbitMQ** hosted on **CloudAMQP**
+- Used for event-driven communication between booking and notification services:
+    - Booking events (confirmation, mofification, cancellation)
+
+---
+
+### Configuration
+
+- All external connections are configured via **environment variables** in Cloud Run:
+    - Database connection strings
+    - RabbitMQ connection (host, port, username, password)
+    - External API keys (e.g., Stripe)
+
+---
+
+### Deployment Flow Summary
+
+1. Developer pushes changes to frontend → Vercel automatically builds and deploys
+2. Developer pushes changes to backend service:
+    - GitHub Actions builds Docker image
+    - Image is pushed to Google Artifact Registry
+    - Cloud Run deploys the updated container
+3. Services connect to:
+    - Databases (Supabase, Aiven)
+    - RabbitMQ (Aiven)
+      via environment variables
+
+---
+
 ## Design Decisions & Trade-offs
 
 - Database-per-service architecture to enforce clear service boundaries
@@ -260,9 +355,6 @@ Each service uses its own database and persistent volume.
 
 ---
 ## Future Improvements
-
-- Cloud deployment with CI/CD pipeline
-- Improved observability (logging, metrics, monitoring)
 
 The business rules implemented in the platform are designed to be adaptable.
 
