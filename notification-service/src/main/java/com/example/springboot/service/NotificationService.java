@@ -26,7 +26,11 @@ public class NotificationService {
             emailService.sendEmail(notificationEmail);
         }
         catch (Exception e){
-            log.error("Cannot send confirmation email to " + event.getUserEmail() + " due to: ", e.getMessage());
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send confirmation email to " + event.getUserEmail() + " due to: ", cause);
         }
 
     }
@@ -40,7 +44,11 @@ public class NotificationService {
             emailService.sendEmail(notificationEmail);
         }
         catch (Exception e){
-            log.error("Cannot send booking canceled confirmation email to " + event.getUserEmail() + " due to: ", e.getMessage());
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send booking canceled confirmation email to " + event.getUserEmail() + " due to: ", cause);
         }
     }
 
@@ -54,7 +62,11 @@ public class NotificationService {
             emailService.sendEmail(notificationEmail);
         }
         catch (Exception e){
-            log.error("Cannot send email of a failed booking cancellation to " + event.getUserEmail()+ " due to: ", e.getMessage());
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send email of a failed booking cancellation to " + event.getUserEmail()+ " due to: ", cause);
         }
     }
 
@@ -68,7 +80,11 @@ public class NotificationService {
             emailService.sendEmail(notificationEmail);
         }
         catch (Exception e){
-            log.error("Cannot send email of a refunded booking to " + event.getUserEmail() + " due to: ", e.getMessage());
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send email of a refunded booking to " + event.getUserEmail() + " due to: ", cause);
         }
     }
     @RabbitListener(queues = "modify.failed.queue")
@@ -82,7 +98,11 @@ public class NotificationService {
             emailService.sendEmail(notificationEmail);
         }
         catch (Exception e){
-            log.error("Cannot send email of a failed refund to " + event.getUserEmail() + " due to: ", e.getMessage());
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send email of a failed refund to " + event.getUserEmail() + " due to: ", cause);
         }
     }
     private Context createBookingEmailContext(BookingEvent event){
