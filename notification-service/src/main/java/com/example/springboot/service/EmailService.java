@@ -48,7 +48,10 @@ public class EmailService {
     }
     @Transactional // every 1 minute
     public void retryEmail(NotificationEmail notificationEmail) throws Exception {
-        if(notificationEmail.getRetryAttempts()!= null && notificationEmail.getRetryAttempts() <= maxRetries && notificationEmail.getStatus() == NotificationStatus.RETRYING){
+        if(notificationEmail.getRetryAttempts() == null){
+            notificationEmail.setRetryAttempts(0);
+        }
+        if(notificationEmail.getRetryAttempts() <= maxRetries && notificationEmail.getStatus() == NotificationStatus.RETRYING){
             notificationEmail.setRetryAttempts(notificationEmail.getRetryAttempts() + 1);
             notificationEmail.setLastRetryAt(java.time.LocalDateTime.now());
             sendEmail(notificationEmail);
