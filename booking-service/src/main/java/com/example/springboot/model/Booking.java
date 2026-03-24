@@ -42,6 +42,7 @@ public class Booking {
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;
+    private LocalDateTime modifiedAt;
     private LocalDateTime expiredAt;
     private BigDecimal totalPrice;
 }

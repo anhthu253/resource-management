@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
 import java.util.Optional;
 @Slf4j
 @Service
@@ -130,6 +131,7 @@ public class PaymentService {
                 payment.setPaymentStatus(PaymentStatus.REFUNDED);
                 payment.setRefundedAmount(amount);
                 booking.setModificationStatus(ModificationStatus.MODIFIED);
+                booking.setModifiedAt(LocalDateTime.now());
                 booking.setBookingStatus(BookingStatus.REPLACED);
                 status = HttpStatus.OK;
                 try{

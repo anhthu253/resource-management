@@ -15,6 +15,7 @@ export interface BookingDto {
   modificationStatus: string;
   startedAt: Date | null;
   endedAt: Date | null;
+  createdAt: Date | null;
   resources: ResourceDto[];
   totalPrice: number;
   userId: number;

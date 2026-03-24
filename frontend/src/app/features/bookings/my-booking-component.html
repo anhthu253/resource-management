@@ -43,6 +43,9 @@
       <div class="booking-price">
         {{ booking.totalPrice | currency }}
       </div>
+      <div class="booking-at">
+        Created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
+      </div>
     </div>
   </div>
 </div>
