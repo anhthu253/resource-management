@@ -8,10 +8,13 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+
 @Setter
 @Getter
 public class BookingDto {
     private Long bookingId;
+    private UUID bookingGroupId;
     private String bookingNumber;
     private List<ResourceDto> resources;
     private Long paymentId;

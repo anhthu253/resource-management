@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 @Slf4j
 @Service
 public class BookingService {
@@ -33,6 +34,9 @@ public class BookingService {
     }
     @Transactional
     public BookingResponseDto createBooking(Booking booking) {
+        if(booking.getBookingGroupId() == null){
+            booking.setBookingGroupId(UUID.randomUUID());
+        }
         booking.setBookingStatus(BookingStatus.PENDING_CONFIRMATION);
         booking.setModificationStatus(ModificationStatus.NONE);
         booking.setCreatedAt(LocalDateTime.now());

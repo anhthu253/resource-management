@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name="booking")
@@ -17,6 +18,8 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
+    @Column(nullable = false, updatable = false)
+    private UUID bookingGroupId;
     private String bookingNumber;
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
     private List<BookingLog> logs = new ArrayList<>();

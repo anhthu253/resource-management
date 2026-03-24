@@ -127,7 +127,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.currentBooking && this.currentBooking.bookingId) {
+    if (this.currentBooking?.bookingId) {
       this.bookingFormGroup.patchValue(this.bookingFormData); //populate controls with current booking values
       this.totalPrice = this.currentBooking.totalPrice; //total price of the current booking
       this.changeNotification =
@@ -198,7 +198,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
               .get('resourceIds')
               ?.setErrors({ empty: 'There is no resources available during this period.' });
           }
-          if (this.currentBooking && this.currentBooking.bookingId) {
+          if (this.currentBooking?.bookingId) {
             this.resourceList = [...res, ...this.currentBooking.resources];
           } else {
             this.resourceList = res;
@@ -224,8 +224,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   //cancel an unfinished booking and clear the form. If there is an existing booking, navigate to my-bookings page.
   onCancelBooking = () => {
-    if (this.currentBooking && this.currentBooking.bookingId)
-      this.router.navigate(['/my-bookings']);
+    if (this.currentBooking?.bookingId) this.router.navigate(['/my-bookings']);
     else this.clearBooking();
   };
 
@@ -248,6 +247,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       if (!user) return;
       const postData: BookingDto = {
         ...period,
+        bookingGroupId: this.currentBooking?.bookingId ? this.currentBooking.bookingGroupId : null, //if there is an existing booking, use its bookingGroupId for creating new booking, which will link these two bookings together. Otherwise, use null as default bookingGroupId for new booking.
         resources: resources,
         userId: user.userId,
         totalPrice: this.totalPrice,
@@ -270,7 +270,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
 
   updateBooking = () => {
-    if (!this.currentBooking || !this.currentBooking.bookingId) return;
+    if (!this.currentBooking?.bookingId) return;
     if (JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.bookingFormData)) {
       return; // if user hasn't changed the current booking, stop proceeding further
     }
@@ -289,7 +289,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
 
   toPayment = () => {
-    if (this.currentBooking && this.currentBooking.bookingId)
+    if (this.currentBooking?.bookingId)
       //change booking
       this.updateBooking();
     else this.createBooking();

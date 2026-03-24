@@ -130,6 +130,7 @@ public class PaymentService {
                 payment.setPaymentStatus(PaymentStatus.REFUNDED);
                 payment.setRefundedAmount(amount);
                 booking.setModificationStatus(ModificationStatus.MODIFIED);
+                booking.setBookingStatus(BookingStatus.REPLACED);
                 status = HttpStatus.OK;
                 try{
                     bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);

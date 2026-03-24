@@ -8,6 +8,7 @@ export interface BookingResponseDto {
 
 export interface BookingDto {
   bookingId: number;
+  bookingGroupId: number;
   bookingNumber: string;
   bookingStatus: string;
   paymentId: number;

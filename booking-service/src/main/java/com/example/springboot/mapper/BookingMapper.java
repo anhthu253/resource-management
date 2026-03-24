@@ -24,6 +24,7 @@ public class BookingMapper {
     public Booking mapBookingDtoToBooking(BookingDto bookingDto){
         if(bookingDto == null) return null;
         var booking = new Booking();
+        booking.setBookingGroupId(bookingDto.getBookingGroupId());
         booking.setBookingStatus(bookingDto.getBookingStatus());
         booking.setModificationStatus(bookingDto.getModificationStatus());
         booking.setStartedAt(bookingDto.getStartedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
@@ -41,6 +42,7 @@ public class BookingMapper {
             List<ResourceDto> allResource = resourceService.getAllResources();
             var bookingDto = new BookingDto();
             bookingDto.setBookingId(booking.getBookingId());
+            bookingDto.setBookingGroupId(booking.getBookingGroupId());
             bookingDto.setBookingNumber(booking.getBookingNumber());
             bookingDto.setPaymentId(booking.getPayment().getPaymentId());
             bookingDto.setBookingStatus(booking.getBookingStatus());
