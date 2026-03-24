@@ -22,6 +22,7 @@ public class BookingDto {
     private ModificationStatus modificationStatus;
     private Date startedAt;
     private Date endedAt;
+    private Date createdAt;
     private BigDecimal totalPrice;
     private Long userId;
 }

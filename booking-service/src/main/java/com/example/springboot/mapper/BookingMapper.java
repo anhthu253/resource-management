@@ -50,6 +50,7 @@ public class BookingMapper {
             bookingDto.setStartedAt(Date.from(booking.getStartedAt().atZone(ZoneId.systemDefault()).toInstant()));
             bookingDto.setEndedAt(Date.from(booking.getEndedAt().atZone(ZoneId.systemDefault()).toInstant()));
             bookingDto.setTotalPrice(booking.getTotalPrice());
+            bookingDto.setCreatedAt(Date.from(booking.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant()));
             List<ResourceDto> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).collect(Collectors.toList());
             bookingDto.setResources(resources);
             return bookingDto;
