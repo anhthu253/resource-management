@@ -1,5 +1,5 @@
-<div class="container">
-    <mat-form-field class="date-picker">
+<div class="row">
+    <mat-form-field class="date-picker" appearance="outline">
         <mat-label>{{ dateLabel }}</mat-label>
         <input
             matInput
@@ -9,12 +9,11 @@
             (dateChange)="onDateChange($event.value)"
             [disabled]="disabled"
         />
-
-        <mat-hint align="start" class="input-error">{{error}}</mat-hint>
         <mat-datepicker #datepicker/>
         <mat-datepicker-toggle [for]="datepicker" matSuffix/>
+        <mat-hint align="start" class="input-error">{{error}}</mat-hint>
     </mat-form-field>
-    <mat-form-field class="time-picker">
+    <mat-form-field class="time-picker" appearance="outline">
         <mat-label>{{ timeLabel }}</mat-label>
         <input matInput
             matTimepickerInput

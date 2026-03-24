@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
 import { Router, RouterLink } from '@angular/router';
 import { MatInput } from '../../core/components/input/input.component';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,7 +8,7 @@ import { UserService } from '../../core/services/user.service';
 @Component({
   standalone: true,
   selector: 'app-login',
-  imports: [RouterLink, ReactiveFormsModule, CommonModule, MatInput, MatButton],
+  imports: [RouterLink, ReactiveFormsModule, CommonModule, MatInput],
   templateUrl: './login.component.html',
   styles: `
     .login-input-row {

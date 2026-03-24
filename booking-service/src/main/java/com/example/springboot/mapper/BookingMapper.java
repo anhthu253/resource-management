@@ -8,8 +8,10 @@ import com.example.springboot.repository.UserRepository;
 import com.example.springboot.service.ResourceService;
 import org.springframework.stereotype.Component;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.ZoneId;
 @Component
 public class BookingMapper {
     private final UserRepository userRepository;
@@ -24,8 +26,8 @@ public class BookingMapper {
         var booking = new Booking();
         booking.setBookingStatus(bookingDto.getBookingStatus());
         booking.setModificationStatus(bookingDto.getModificationStatus());
-        booking.setStartedAt(bookingDto.getStartedAt());
-        booking.setEndedAt(bookingDto.getEndedAt());
+        booking.setStartedAt(bookingDto.getStartedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        booking.setEndedAt(bookingDto.getEndedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         booking.setTotalPrice(bookingDto.getTotalPrice());
         User user = userRepository.findById(bookingDto.getUserId()).orElseThrow(()-> new IllegalArgumentException("User not found"));
         booking.setUser(user);
@@ -43,8 +45,8 @@ public class BookingMapper {
             bookingDto.setPaymentId(booking.getPayment().getPaymentId());
             bookingDto.setBookingStatus(booking.getBookingStatus());
             bookingDto.setModificationStatus(booking.getModificationStatus());
-            bookingDto.setStartedAt(booking.getStartedAt());
-            bookingDto.setEndedAt(booking.getEndedAt());
+            bookingDto.setStartedAt(Date.from(booking.getStartedAt().atZone(ZoneId.systemDefault()).toInstant()));
+            bookingDto.setEndedAt(Date.from(booking.getEndedAt().atZone(ZoneId.systemDefault()).toInstant()));
             bookingDto.setTotalPrice(booking.getTotalPrice());
             List<ResourceDto> resources = allResource.stream().filter(r -> booking.getResourceIds().contains(r.getResourceId())).collect(Collectors.toList());
             bookingDto.setResources(resources);
@@ -54,7 +56,6 @@ public class BookingMapper {
             return null;
         }
     }
-
     public List<BookingDto> mapBookingListToBookingDtoList(List<Booking> bookings){
         return bookings.stream().map(booking -> mapBookingToBookingDto(booking)).collect(Collectors.toList());
     }

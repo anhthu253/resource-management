@@ -1,6 +1,6 @@
 package com.example.springboot.dto;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
-public record BookingPeriodDto(LocalDateTime startedAt, LocalDateTime endedAt) {
+public record BookingPeriodDto(Date startedAt, Date endedAt) {
 }

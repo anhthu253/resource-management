@@ -2,13 +2,11 @@ package com.example.springboot.dto;
 
 import com.example.springboot.model.BookingStatus;
 import com.example.springboot.model.ModificationStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 @Setter
 @Getter
@@ -19,8 +17,8 @@ public class BookingDto {
     private Long paymentId;
     private BookingStatus bookingStatus;
     private ModificationStatus modificationStatus;
-    private LocalDateTime startedAt;
-    private LocalDateTime endedAt;
+    private Date startedAt;
+    private Date endedAt;
     private BigDecimal totalPrice;
     private Long userId;
 }

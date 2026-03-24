@@ -14,7 +14,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Router } from '@angular/router';
-import { MatButton } from '@angular/material/button';
 import { MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
@@ -22,13 +21,8 @@ import { MatSpinner } from '@angular/material/progress-spinner';
   selector: 'app-resources',
   templateUrl: './resources-component.html',
   styleUrl: './resources-component.css',
-  imports: [MatTableModule, MatPaginatorModule, MatButton, MatSpinner, CommonModule],
+  imports: [MatTableModule, MatPaginatorModule, MatSpinner, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styles: `
-    table {
-      width: 100%;
-    }
-  `,
 })
 export class ResourcesComponent implements OnInit {
   isLoading = false;

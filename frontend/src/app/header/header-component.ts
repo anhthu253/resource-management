@@ -4,12 +4,14 @@ import { MatButton } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { UserService } from '../core/services/user.service';
+import { MatIcon } from '@angular/material/icon';
+
 @Component({
   standalone: true,
   selector: 'app-header',
   templateUrl: './header-component.html',
   styleUrl: './header-component.css',
-  imports: [MatButton, CommonModule],
+  imports: [MatButton, CommonModule, MatIcon],
 })
 export class HeaderComponent {
   @Input() isLogin!: boolean;

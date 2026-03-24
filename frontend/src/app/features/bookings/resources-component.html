@@ -1,6 +1,6 @@
 <mat-spinner *ngIf="isLoading"></mat-spinner>
-<div *ngIf="!isLoading">
-  <table mat-table [dataSource]="dataSource">
+<div class="table-card" *ngIf="!isLoading">
+  <table class="table" mat-table [dataSource]="dataSource">
 
     <ng-container matColumnDef="resourceName">
       <th mat-header-cell *matHeaderCellDef> Name </th>
@@ -25,6 +25,6 @@
                  showFirstLastButtons
                  aria-label="Select page of periodic elements">
   </mat-paginator>
-  <button mat-raised-button color="primary" (click)="goToBooking()">Create a booking</button>
+  <button class="primary-btn" (click)="goToBooking()">Create a booking</button>
   <p *ngIf="message">{{message}}</p>
 </div>

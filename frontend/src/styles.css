@@ -1,1 +1,85 @@
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
+:root{
+  --primary: #0F766E;
+  --primary-hover: #115E59;
+  --primary-soft: #f1f5f9;
+
+  --bg: #F9FAFB;
+  --card-bg: #FFFFFF;
+
+  --text-main: #111827;
+  --text-secondary: #6B7280;
+
+  --border: #E5E7EB;
+  --row-hover: #F3F4F6;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--text-main);
+  background-color: var(--bg);
+
+  margin: 0;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: var(--primary-hover);
+}
+
+.secondary-btn {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  color: var(--text-main);
+}
+
+.mat-mdc-progress-spinner circle {
+  stroke: #FACC15
+}
+
+.mat-mdc-tab-group {
+  margin-bottom: 16px!important;
+}
+
+.mat-mdc-tab {
+  font-size: 14px!important;
+  color: var(--text-secondary)!important;
+}
+
+.mat-mdc-tab.mdc-tab--active {
+  color: var(--primary)!important;
+}
+
+.mat-mdc-tab.mdc-tab--active .mdc-tab__text-label{
+  color: var(--text-main)!important;
+}
+.mat-mdc-tab .mdc-tab-indicator__content--underline {
+  border-color: var(--primary)!important;
+  border-width: 2px;
+}
+
+.mat-mdc-card-title {
+  display: flex!important;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { BookingService } from '../../core/services/booking.service';
 import { ResourceDto } from '../../core/dtos/resource.dto';
-import { ActivatedRoute, Route } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   standalone: true,
   selector: 'app-booking-summary',

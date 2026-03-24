@@ -1,26 +1,47 @@
 <mat-spinner *ngIf="isLoading"></mat-spinner>
-<mat-card *ngFor="let booking of bookings; let i = index" class="booking-card">
-  <mat-card-title>
-    <span>Booking {{ booking.bookingNumber }}</span>
-    <mat-icon (click)="cancelBooking(booking.bookingId)">unsubscribe</mat-icon>
-    <mat-icon (click)="modifyBooking(booking)">edit</mat-icon>
-  </mat-card-title>
+<div class="container">
+  <div *ngFor="let booking of bookings; let i = index" class="booking-card">
+    <div class="booking-header">
+      <div class="booking-id">
+        Booking {{ booking.bookingNumber }}
+      </div>
+      <div class="booking-actions">
+        @if(booking?.modificationStatus!=='MODIFY_PENDING'){
+          <button mat-icon-button (click)="modifyBooking(booking)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        @else{
+          <button mat-icon-button>
+            <mat-icon>track_changes</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+    <div class="booking-body">
+      <div class="booking-row resources-block">
+        <mat-icon>inventory_2</mat-icon>
 
-  <mat-card-content>
-    <div class="resources">
-      @for (resource of booking.resources; track resource.resourceId){
-        <div>
-          {{ resource.resourceName }}
+        <div class="resources-list">
+          @for (resource of booking.resources; track resource.resourceId){
+          <div>
+            {{ resource.resourceName }}
+          </div>
+        }
         </div>
-      }
+      </div>
+      <div class="booking-row">
+        <mat-icon>schedule</mat-icon>
+        {{ booking.startedAt | date: 'MMM d, HH:mm' }} → {{ booking.endedAt | date: 'MMM d, HH:mm' }}
+      </div>
+      <div class="booking-price">
+        {{ booking.totalPrice | currency }}
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="dates">
-      from {{ booking.startedAt | date:'dd/MM/yyyy HH:mm' }} to {{ booking.endedAt| date:'dd/MM/yyyy HH:mm' }}
-    </div>
-    <div>
-      with price: {{booking.totalPrice | currency}}
-    </div>
-  </mat-card-content>
-</mat-card>
 <p>{{message}}</p>

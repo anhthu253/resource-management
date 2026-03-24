@@ -10,7 +10,6 @@ import { BookingService } from '../../core/services/booking.service';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
-import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
@@ -28,15 +27,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './my-booking-component.html',
   styleUrl: './my-booking-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    MatCard,
-    MatCardTitle,
-    MatCardContent,
-    MatIcon,
-    MatSpinner,
-    MatTooltipModule,
-  ],
+  imports: [CommonModule, MatIcon, MatSpinner, MatTooltipModule],
 })
 export class MyBookingComponent implements OnInit {
   isLoading = false;

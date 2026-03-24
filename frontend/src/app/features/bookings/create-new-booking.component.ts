@@ -6,7 +6,6 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  resource,
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -26,6 +25,7 @@ import { BookingDto } from '../../core/dtos/booking.dto';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatSpinner } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   standalone: true,
@@ -40,6 +40,7 @@ import { MatSpinner } from '@angular/material/progress-spinner';
     MultipleSelection,
     MatButtonModule,
     MatSpinner,
+    MatCardModule,
   ],
 })
 export class NewBookingComponent implements OnInit, OnDestroy {
@@ -223,10 +224,9 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   //cancel an unfinished booking and clear the form. If there is an existing booking, navigate to my-bookings page.
   onCancelBooking = () => {
-    this.clearBooking();
-    if (this.currentBooking && this.currentBooking.bookingId) {
+    if (this.currentBooking && this.currentBooking.bookingId)
       this.router.navigate(['/my-bookings']);
-    }
+    else this.clearBooking();
   };
 
   clearBooking = () => {

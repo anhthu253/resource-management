@@ -94,8 +94,8 @@ public class BookingService {
         bookingRepository.saveAll(expiredBookings);
     }
     public double getTotalPricePerBooking(BookingDto booking){
-        Instant startedInstant = booking.getStartedAt().atZone(ZoneId.systemDefault()).toInstant();
-        Instant endedInstant = booking.getEndedAt().atZone(ZoneId.systemDefault()).toInstant();
+        Instant startedInstant = booking.getStartedAt().toInstant();
+        Instant endedInstant = booking.getEndedAt().toInstant();
         long diffSeconds = ChronoUnit.SECONDS.between(startedInstant, endedInstant);
         return booking.getResources().stream()
                 .map(resource -> getBasePricePerSecond(diffSeconds, resource.getBasePrice(), resource.getPriceUnit()))
@@ -103,8 +103,10 @@ public class BookingService {
     }
     public List<ResourceDto> getAvailableResources(BookingPeriodDto bookingPeriodDto) throws Exception {
         List<ResourceDto> allResource = getAllResources();
+        LocalDateTime startedAt = bookingPeriodDto.startedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime endedAt = bookingPeriodDto.endedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         List<Long> bookedResourceIds = this.bookingRepository
-                .getBookings(bookingPeriodDto.startedAt(), bookingPeriodDto.endedAt())
+                .getBookings(startedAt, endedAt)
                 .stream().flatMap(booking -> booking.getResourceIds().stream())
                 .distinct()
                 .collect(Collectors.toList());

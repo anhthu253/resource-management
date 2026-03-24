@@ -103,11 +103,15 @@ export class DatePicker implements ControlValueAccessor, OnInit, OnDestroy {
       return;
     }
 
-    const combined = new Date(this.dateValue);
-    if (this.timeValue)
-      combined.setHours(this.timeValue.getHours(), this.timeValue.getMinutes(), 0, 0);
-    else combined.setHours(0, 0, 0, 0);
-
+    const combined = new Date(
+      this.dateValue.getFullYear(),
+      this.dateValue.getMonth(),
+      this.dateValue.getDate(),
+      this.timeValue ? this.timeValue.getHours() : 0,
+      this.timeValue ? this.timeValue.getMinutes() : 0,
+      0,
+      0,
+    );
     this.onChange(combined);
     this.onTouched();
   }

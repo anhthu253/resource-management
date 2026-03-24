@@ -11,7 +11,6 @@ import { BookingDto } from '../../core/dtos/booking.dto';
 import { UserService } from '../../core/services/user.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,7 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './pending-bookings-component.html',
   styleUrl: './pending-bookings-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatCard, MatCardTitle, MatCardContent, MatIcon, MatSpinner],
+  imports: [CommonModule, MatIcon, MatSpinner],
 })
 export class PendingBookingsComponent implements OnInit {
   bookings: BookingDto[] = [];

@@ -1,10 +1,45 @@
 .header {
-    padding-bottom: 10px;
-    padding-top: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    display:flex;
-    flex-direction: row;
+    display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+}
+
+.logout-btn {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  color: var(--text-main);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+  font-size: 22px;
+  color: white;
+  background: var(--primary);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.smrt-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.smrt-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }

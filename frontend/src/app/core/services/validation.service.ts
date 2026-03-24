@@ -149,8 +149,8 @@ export class ValidationService {
     }
 
     if (startedAt && endedAt && startedAt >= endedAt) {
-      startedCtrl.setErrors({ invalidStart: 'Start date has to be before end date' });
-      endedCtrl.setErrors({ invalidEnd: 'End date has to be after start date' });
+      startedCtrl.setErrors({ invalidStart: 'Start has to be before end' });
+      endedCtrl.setErrors({ invalidEnd: 'End has to be after start' });
       return { invalidDateRange: true };
     }
     startedCtrl.setErrors(null);

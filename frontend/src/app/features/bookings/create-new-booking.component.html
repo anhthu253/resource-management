@@ -1,33 +1,39 @@
 <h2>{{changeNotification}}</h2>
 <div class="container">
-    <form [formGroup]="bookingFormGroup" class="column">
-        <div [formGroup]="periodGroup" class="column">
-            <app-date-picker dateLabel="Started at" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
-            <app-date-picker dateLabel="Ended at" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
-        </div>
-        <div class="row">
-            <app-multi-select 
-            label="Resources" 
-            [options]="resourceNormalizedList"
-            formControlName="resourceIds"
-            >
-            </app-multi-select>
-            <mat-spinner *ngIf="isResourceLoading" [diameter]="50"></mat-spinner>
-        </div>
-    </form>
-    @if (bookingFormGroup.valid){
-        <div>
-            <p>Total price: {{totalPrice | currency}}</p>
-        </div>
-    }
-    
-    <div class="row buttons">
-        <button mat-stroked-button (click)="onCancelBooking()">Cancel</button>
-        @if (currentBooking?.bookingId){
-            <button mat-raised-button color="primary" (click)="clearBooking()">New</button>
-        }
-        @if (bookingFormGroup.valid){
-            <button mat-raised-button color="primary" (click)="toPayment()">Proceed to payment</button>
-        }
-    </div>
+    <mat-card class="booking-card">
+        <form [formGroup]="bookingFormGroup" class="column">
+            <div [formGroup]="periodGroup" class="column">
+                <div class="section-title">Start</div>
+                <app-date-picker dateLabel="Start Date" timeLabel="Start Time" formControlName="startedAt" [filter]="dateFilter"></app-date-picker>
+                <div class="section-title">End</div>
+                <app-date-picker dateLabel="End Date" timeLabel="End Time" formControlName="endedAt" [filter]="dateFilter"></app-date-picker>
+            </div>
+            <div class="row">
+                <app-multi-select 
+                label="Resources" 
+                [options]="resourceNormalizedList"
+                formControlName="resourceIds"
+                >
+                </app-multi-select>
+                <mat-spinner *ngIf="isResourceLoading" [diameter]="50"></mat-spinner>
+            </div>
+        
+            @if (bookingFormGroup.valid){
+                <div class="price-summary">
+                    <span class="price-label">Total price:</span>
+                    <span class="price-value">{{totalPrice | currency}}</span>
+                </div>
+            }
+            
+            <div class="actions">
+                <button class="secondary-btn" (click)="onCancelBooking()">Cancel</button>
+                @if (currentBooking?.bookingId){
+                    <button class="primary-btn" (click)="clearBooking()">New</button>
+                }
+                @if (bookingFormGroup.valid){
+                    <button class="primary-btn" (click)="toPayment()">Proceed to payment</button>
+                }
+            </div>
+        </form>
+    </mat-card>
 </div>

@@ -3,8 +3,12 @@
     font-size: 10pt;
 }
 
-.container {
+.row {
     display: flex;
     gap: 16px;
     flex-flow: row wrap;
+}
+
+:host ::ng-deep .mat-form-field {
+  flex: 1;
 }

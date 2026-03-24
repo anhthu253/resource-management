@@ -4,7 +4,7 @@
       <app-input type="password" label="password" formControlName="password"></app-input>
     </div>
           
-    <button mat-raised-button color="primary" (click)="onLogin()">Login</button>
+    <button class="primary-btn" (click)="onLogin()">Login</button>
     @if (errorMessage){
       <p class="error">{{ errorMessage }}</p>
     }

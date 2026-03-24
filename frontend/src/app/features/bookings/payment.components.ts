@@ -22,7 +22,6 @@ import { PaymentIntentDto } from '../../core/dtos/booking.dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { MatButton } from '@angular/material/button';
-import { BookingStateService } from '../../core/services/booking.state.service';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
