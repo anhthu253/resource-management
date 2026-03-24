@@ -1,7 +1,7 @@
 <div>
-    <h2>Your booking has been successfully created.</h2>
+    <h2>Your booking {{ booking?.bookingNumber }} has been successfully created.</h2>
     <div>
-        <p>Following is your booking summary</p>
+        <p>Following is your booking summary:</p>
         <div>
             <label>Resource</label>
             <ul>
@@ -12,8 +12,8 @@
                 }
             </ul>
 
-            <p>Started at: {{booking?.startedAt | date: 'MMM d, HH:mm'}}</p>
-            <p>Ended at: {{booking?.endedAt | date: 'MMM d, HH:mm'}}</p>
+            <p>Starts on: {{booking?.startedAt | date: 'MMM d, HH:mm'}}</p>
+            <p>Ends on: {{booking?.endedAt | date: 'MMM d, HH:mm'}}</p>
         </div>
         <p>Total price: {{booking?.totalPrice | currency}}</p>
         <p>We will send you a confirmation email shortly.</p>

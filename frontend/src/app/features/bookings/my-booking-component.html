@@ -17,7 +17,7 @@
           </button>
         }
         @else{
-          <button mat-icon-button>
+          <button mat-icon-button (click)="trackRefund(booking.bookingId)">
             <mat-icon>track_changes</mat-icon>
           </button>
         }
