@@ -37,14 +37,16 @@
         </div>
       </div>
       <div class="booking-row">
-        <mat-icon>schedule</mat-icon>
+        <mat-icon>event_available</mat-icon>
         {{ booking.startedAt | date: 'MMM d, HH:mm'}} → {{ booking.endedAt | date: 'MMM d, HH:mm'}}
       </div>
-      <div class="booking-price">
-        {{ booking.totalPrice | currency }}
+      <div class="booking-row">
+        <mat-icon>money</mat-icon>
+        <span class="booking-price">{{ booking.totalPrice | currency }}</span>
       </div>
-      <div class="booking-at">
-        Created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
+      <div class="booking-row">
+        <mat-icon>schedule</mat-icon>
+        created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
       </div>
     </div>
   </div>
