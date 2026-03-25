@@ -119,9 +119,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         startedAt: startedAt,
         endedAt: endedAt,
       },
-      resourceIds: this.currentBooking
-        ? this.currentBooking.resources.map((resource) => resource.resourceId)
-        : [],
+      resourceIds: this.currentBooking?.resources.map((resource) => resource.resourceId),
     };
     return formData;
   }
@@ -199,7 +197,11 @@ export class NewBookingComponent implements OnInit, OnDestroy {
               ?.setErrors({ empty: 'There is no resources available during this period.' });
           }
           if (this.currentBooking?.bookingId) {
-            this.resourceList = [...res, ...this.currentBooking.resources];
+            const map = new Map();
+            [...res, ...this.currentBooking.resources].forEach((item) => {
+              map.set(item.resourceId, item);
+            }); // combine available resources with current booking resources to make sure all current booking resources are shown in the resource list even they are not available for the selected period, which will avoid confusion for users when they modify an existing booking.
+            this.resourceList = [...map.values()];
           } else {
             this.resourceList = res;
           }
