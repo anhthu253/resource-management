@@ -124,8 +124,12 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const fromEdit = history.state?.fromEdit;
+    if (!fromEdit) {
+      this.bookingStateService.clearBooking();
+    }
+
     if (this.currentBooking?.bookingId) {
-      console.log('modifying ...', this.currentBookingFormData);
       this.bookingFormGroup.patchValue(this.currentBookingFormData); //populate controls with current booking values
       this.totalPrice = this.currentBooking.totalPrice; //total price of the current booking
       this.changeNotification =
@@ -213,8 +217,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
             } else {
               this.resourceList = res;
             }
-          }
-          else this.resourceList = res;
+          } else this.resourceList = res;
 
           this.resourceNormalizedList = this.resourceList.map((entry) => {
             return {

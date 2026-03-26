@@ -71,7 +71,9 @@ export class MyBookingComponent implements OnInit {
 
   modifyBooking = (booking: BookingDto) => {
     this.bookingStateService.setBooking(booking);
-    this.router.navigate(['/new-booking']);
+    this.router.navigate(['/new-booking'], {
+      state: { fromEdit: true },
+    });
   };
 
   trackRefund = (bookingId: number) => {
