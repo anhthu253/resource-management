@@ -6,6 +6,7 @@ import {
   Component,
   DestroyRef,
   inject,
+  OnDestroy,
   OnInit,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -18,13 +19,14 @@ import {
   StripeCardNumberElement,
 } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
-import { PaymentIntentDto } from '../../core/dtos/booking.dto';
+import { BookingDto, PaymentIntentDto } from '../../core/dtos/booking.dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { MatButton } from '@angular/material/button';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BookingStateService } from '../../core/services/booking.state.service';
 
 @Component({
   standalone: true,
@@ -34,7 +36,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [ReactiveFormsModule, CommonModule, RadioButton, MatButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaymentComponent implements AfterViewInit {
+export class PaymentComponent implements AfterViewInit, OnDestroy {
   paymentBrands = ['Visa', 'Mastercard', 'Paypal'];
   selectedBrand = new FormControl<string>('');
   detectedBrand = 'unknown';
@@ -61,9 +63,18 @@ export class PaymentComponent implements AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookingService: BookingService,
+    private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
     private dialog: MatDialog,
   ) {}
+
+  get currentBooking(): BookingDto | null {
+    return this.bookingStateService.getBooking();
+  }
+
+  ngOnDestroy(): void {
+    this.bookingStateService.clearBooking();
+  }
 
   async ngAfterViewInit() {
     this.stripe = (await loadStripe(environment.stripePublishableKey)) as Stripe;
@@ -140,11 +151,27 @@ export class PaymentComponent implements AfterViewInit {
           next: async (res) => {
             const result = await this.stripe.confirmCardPayment(res);
             if (result.paymentIntent?.status === 'succeeded') {
-              this.router.navigate(['/booking-summary'], {
-                queryParams: {
-                  bookingId: bookingId,
-                },
-              });
+              if (this.currentBooking?.bookingId) {
+                //create refund for the previous booking
+                this.bookingService.createRefund(this.currentBooking.bookingId).subscribe({
+                  next: (res) => {
+                    this.router.navigate(['/booking-summary'], {
+                      queryParams: {
+                        bookingId: bookingId,
+                        refund: true,
+                      },
+                    });
+                  },
+                  error: (err) => {},
+                }); //create a refund for the original payment of the current booking, which will be processed asynchronously by the backend. Users will receive email notifications from Stripe about the refund status.
+              } else {
+                this.router.navigate(['/booking-summary'], {
+                  queryParams: {
+                    bookingId: bookingId,
+                    refund: false,
+                  },
+                });
+              }
             } else this.openDialog('Payment is not processed. Please try again later.');
           },
           error: (err) => {

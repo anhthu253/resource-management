@@ -86,7 +86,6 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     );
   }
   ngOnDestroy(): void {
-    this.bookingStateService.clearBooking();
     this.changeNotification = '';
   }
 
@@ -105,7 +104,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     return this.bookingStateService.getBooking();
   }
 
-  get bookingFormData() {
+  get currentBookingFormData() {
     const startedAt =
       typeof this.currentBooking?.startedAt == 'string'
         ? new Date(this.currentBooking.startedAt)
@@ -126,7 +125,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.currentBooking?.bookingId) {
-      this.bookingFormGroup.patchValue(this.bookingFormData); //populate controls with current booking values
+      this.bookingFormGroup.patchValue(this.currentBookingFormData); //populate controls with current booking values
       this.totalPrice = this.currentBooking.totalPrice; //total price of the current booking
       this.changeNotification =
         'You are modifying an existing booking. Please review and update your details below.';
@@ -159,7 +158,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     });
   }
 
-  openSucceededRefundConfirm = (message: string) => {
+  openUpdateConfirm = (message: string) => {
     const dialogRef = this.dialog.open(NotificationDialog, {
       width: '350px',
       data: {
@@ -232,7 +231,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   clearBooking = () => {
     this.bookingStateService.clearBooking();
-    this.bookingFormGroup.patchValue(this.bookingFormData);
+    this.bookingFormGroup.patchValue(this.currentBookingFormData);
     this.totalPrice = 0;
     this.changeNotification = '';
     this.errorMessage = '';
@@ -273,7 +272,9 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   updateBooking = () => {
     if (!this.currentBooking?.bookingId) return;
-    if (JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.bookingFormData)) {
+    if (
+      JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.currentBookingFormData)
+    ) {
       return; // if user hasn't changed the current booking, stop proceeding further
     }
 
@@ -282,10 +283,10 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.openSucceededRefundConfirm(res);
+          this.openUpdateConfirm(res);
         },
         error: (err) => {
-          this.openFailureAlert(err.error); //refund failed due to stripe. Will be tried in the backend.
+          this.openFailureAlert(err.error);
         },
       });
   };

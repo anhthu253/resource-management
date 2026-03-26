@@ -38,7 +38,6 @@ public class BookingService {
             booking.setBookingGroupId(UUID.randomUUID());
         }
         booking.setBookingStatus(BookingStatus.PENDING_CONFIRMATION);
-        booking.setModificationStatus(ModificationStatus.NONE);
         booking.setCreatedAt(LocalDateTime.now());
         booking.setExpiredAt(LocalDateTime.now().plusMinutes(15)); //users have 15 minutes to pay
         booking.setBookingNumber(generateBookingNumber());
@@ -48,8 +47,29 @@ public class BookingService {
     }
     public void updateBooking(long bookingId) throws Exception{
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-        booking.setModificationStatus(ModificationStatus.MODIFY_PENDING);
-        bookingRepository.save(booking);
+
+        try{
+            booking.setBookingStatus(BookingStatus.REPLACED);
+            booking.setModifiedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            try{
+                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
+            }
+            catch(Exception ex){
+                log.error("Unsuccessfully deliver booking modified event to RabbitMQ.");
+            }
+        }
+        catch (Exception e){
+            try{
+                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+            }
+            catch(Exception ex){
+                log.error("Unsuccessfully deliver failed modify event to RabbitMQ.");
+            }
+            throw new Exception(e);
+        }
+
     }
     public void cancelBooking (long bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();

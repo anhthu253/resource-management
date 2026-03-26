@@ -2,6 +2,7 @@ package com.example.springboot.service;
 
 import com.example.springboot.dto.PaymentIntentDto;
 import com.example.springboot.dto.PaymentIntentResponseDto;
+import com.example.springboot.dto.RefundStatusUpdateDto;
 import com.example.springboot.dto.StripeErrorResponseDto;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
+import java.sql.Ref;
 import java.time.LocalDateTime;
 import java.util.Optional;
 @Slf4j
@@ -43,6 +45,7 @@ public class PaymentService {
         var payment = new Payment();
         payment.setBooking(booking);
         payment.setPaymentStatus(PaymentStatus.AWAITING_CUSTOMER_ACTION);
+        payment.setRefundStatus(RefundStatus.NONE);
         payment.setAmount(booking.getTotalPrice());
         payment.setCurrency(Currency.EUR);
         return this.paymentRepository.save(payment);
@@ -69,11 +72,7 @@ public class PaymentService {
             return new ResponseEntity<>("Payment is not processed. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    public HttpStatus updatePayment(String eventType, StripeObject stripeObject) {
-        Payment payment;
-        Booking booking;
-        var status = HttpStatus.OK;
-
+    public void updatePayment(String eventType, StripeObject stripeObject) {
         switch (eventType) {
             // PaymentIntent events
             case "payment_intent.succeeded" -> {
@@ -81,15 +80,16 @@ public class PaymentService {
                 String paymentIntentId = paymentIntent.getId();
                 String chargeId = paymentIntent.getLatestCharge();
 
-                payment = paymentRepository.findByPaymentIntentId(paymentIntentId)
+                Payment payment = paymentRepository.findByPaymentIntentId(paymentIntentId)
                         .orElseThrow(() -> new IllegalArgumentException("Payment not found for PaymentIntent: " + paymentIntentId));
-                booking = bookingRepository.findByPayment(payment)
+                Booking booking = bookingRepository.findByPayment(payment)
                         .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
 
                 payment.setChargeId(chargeId);
                 payment.setPaymentStatus(PaymentStatus.SUCCEEDED);
+                paymentRepository.save(payment);
                 booking.setBookingStatus(BookingStatus.CONFIRMED);
-                status = HttpStatus.OK;
+                bookingRepository.save(booking);
                 try{
                     bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CREATED);
                 }
@@ -102,13 +102,13 @@ public class PaymentService {
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 String paymentIntentId = paymentIntent.getId();
 
-                payment = paymentRepository.findByPaymentIntentId(paymentIntentId)
+                Payment payment = paymentRepository.findByPaymentIntentId(paymentIntentId)
                         .orElseThrow(() -> new IllegalArgumentException("Payment not found for PaymentIntent: " + paymentIntentId));
-                booking = bookingRepository.findByPayment(payment)
+                Booking booking = bookingRepository.findByPayment(payment)
                         .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
 
                 payment.setPaymentStatus(PaymentStatus.FAILED);
-                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                paymentRepository.save(payment);
                 try{
                     bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_FAILED);
                 }
@@ -116,79 +116,84 @@ public class PaymentService {
                     log.error("Unsucessfully publish failed booking event to RabbitMQ");
                 }
             }
+            case "refund.created", "refund.updated", "refund.failed" -> {Refund refund = (Refund) stripeObject;
+                proceedRefundEvent(eventType,refund);
+            }
 
             // Refund events
-            case "charge.refunded" -> {
+           case "charge.refunded" -> {
                 Charge charge = (Charge) stripeObject;
                 String chargeId = charge.getId();
                 Long amount = charge.getAmount();
 
-                payment = paymentRepository.findByChargeId(chargeId)
+                Payment payment = paymentRepository.findByChargeId(chargeId)
                         .orElseThrow(() -> new IllegalArgumentException("Payment not found for Charge: " + chargeId));
-                booking = bookingRepository.findByPayment(payment)
+                Booking booking = bookingRepository.findByPayment(payment)
                         .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
 
-                payment.setPaymentStatus(PaymentStatus.REFUNDED);
                 payment.setRefundedAmount(amount);
-                booking.setModificationStatus(ModificationStatus.MODIFIED);
-                booking.setModifiedAt(LocalDateTime.now());
-                booking.setBookingStatus(BookingStatus.REPLACED);
-                status = HttpStatus.OK;
+                payment.setRefundStatus(RefundStatus.REFUNDED);
+                paymentRepository.save(payment);
+                refundService.complete(booking.getBookingId());
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUNDED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish booking modified event to RabbitMQ");
                 }
             }
+        }
+    }
 
-            case "refund.failed" -> {
-                Refund refund = (Refund) stripeObject;
-                String chargeId = refund.getCharge();
-                Long amount = refund.getAmount();
-
-                payment = paymentRepository.findByChargeId(chargeId)
-                        .orElseThrow(() -> new IllegalArgumentException("Payment not found for Charge: " + chargeId));
-                booking = bookingRepository.findByPayment(payment)
-                        .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
-
-                payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
-                booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
-                status = HttpStatus.INTERNAL_SERVER_ERROR;
-                try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
-                }
-                catch(Exception e){
-                    log.error("Unsucessfully publish modify failed event to RabbitMQ");
-                }
+    private void proceedRefundEvent(String eventType, Refund refund){
+        String chargeId = refund.getCharge();
+        Payment payment = paymentRepository.findByChargeId(chargeId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found for Charge: " + chargeId));
+        Booking booking = bookingRepository.findByPayment(payment)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found for Payment: " + payment.getPaymentId()));
+        payment.setRefundStatus(RefundStatus.INITIATED);
+        RefundStatusUpdateDto update = new RefundStatusUpdateDto(booking.getBookingId(), RefundStatus.INITIATED,"Refund request for this booking is successfully created.");;
+        switch(refund.getStatus()){
+            case "pending" -> {
+                update = new RefundStatusUpdateDto(booking.getBookingId(), RefundStatus.PENDING,"Refund is being processed… please wait.");
+                refundService.notifyUpdate(update);
             }
-            default -> {
-                payment=null;
-                booking=null;
+            case "succeeded" -> {
+                payment.setRefundStatus(RefundStatus.REFUNDED);
+                paymentRepository.save(payment);
+                refundService.complete(booking.getBookingId());
+            }
+            case "failed" -> {
+                payment.setRefundStatus(RefundStatus.FAILED);
+                payment.setRefundFailureReason(refund.getFailureReason());
+                paymentRepository.save(payment);
+                refundService.complete(booking.getBookingId());
+                if("refund.failed".equals(eventType)){
+                    try{
+                        bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
+                    }
+                    catch(Exception e){
+                        log.error("Unsucessfully publish refund failed event to RabbitMQ");
+                    }
+                }
             }
         }
-        // Save updates
-        if(payment != null) paymentRepository.save(payment);
-        if (booking != null) bookingRepository.save(booking);
-
-
-
-        return status;
     }
-    public ResponseEntity<?> createRefund(long bookingId) throws Exception {
+
+    public ResponseEntity<?> createRefund(long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
         Payment payment = paymentRepository.findByBookingId(bookingId).orElseThrow();
         try {
+            payment.setRefundStatus(RefundStatus.PENDING);
+            paymentRepository.save(payment);
             HttpResponse<String> refundResponse = stripeService.postPaymentRefund(bookingId, payment.getChargeId());
             HttpStatus status = HttpStatus.valueOf(refundResponse.statusCode());
             if (status.is2xxSuccessful()) {
-                payment.setPaymentStatus(PaymentStatus.REFUND_PENDING);
-                paymentRepository.save(payment);
                 return new ResponseEntity<>("Refund request is successfully created.",HttpStatus.OK);
-            } else if (status.is5xxServerError()) {
+            } else if (status.is5xxServerError()) {;
                 this.refundService.processRefundAsync(booking, payment, null, 0);
                 return new ResponseEntity<>("We could not process your refund at this time. Your current booking remains active. Our system will retry automatically. If the problem persists, please contact support.",HttpStatus.INTERNAL_SERVER_ERROR);
-            } else if (status == HttpStatus.TOO_MANY_REQUESTS) {
+            } else if (status == HttpStatus.TOO_MANY_REQUESTS) {;
                 long retryAfterSeconds = defautRetryAfter;
                 Optional<String> retryAfterOpt = refundResponse.headers().firstValue("Retry-After");
                 if (retryAfterOpt.isPresent())
@@ -196,12 +201,10 @@ public class PaymentService {
                 this.refundService.processRefundAsync(booking, payment, retryAfterSeconds, 0);
                 return new ResponseEntity<>("We could not process your refund at this time. Your current booking remains active. Our system will retry automatically. If the problem persists, please contact support.",HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
-                booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
-                bookingRepository.save(booking);
-                payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
+                payment.setRefundStatus(RefundStatus.FAILED);
                 paymentRepository.save(payment);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");
@@ -212,7 +215,7 @@ public class PaymentService {
             }
         }
         catch(Exception e){
-            return new ResponseEntity<>("Refund request is failed to proceeded. Please contact us!", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Unable to create a refund request. Please try again later!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

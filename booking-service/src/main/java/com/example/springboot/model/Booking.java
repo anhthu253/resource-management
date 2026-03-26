@@ -37,8 +37,6 @@ public class Booking {
     private List<Long> resourceIds;
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
-    @Enumerated(EnumType.STRING)
-    private ModificationStatus modificationStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;

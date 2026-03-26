@@ -74,28 +74,36 @@ export class MyBookingComponent implements OnInit {
     this.router.navigate(['/new-booking']);
   };
 
-  openDialog = (message: string) => {
+  trackRefund = (bookingId: number) => {
+    let message = 'Your refund request is being processed. You’ll see live updates here.';
     const dialogRef = this.dialog.open(NotificationDialog, {
       width: '350px',
       data: {
         message: message,
       },
     });
-  };
-
-  trackRefund = (bookingId: number) => {
-    this.refundService.getRefundStatusStream(bookingId).subscribe(
-      (status) => {
-        let message = 'We are working on it and will get back to you as soon as possible.';
-        if (status) message = status.message;
-        this.openDialog(message);
+    const subscription = this.refundService.getRefundStatusStream(bookingId).subscribe(
+      (res) => {
+        this.bookings = this.bookings.map((booking) =>
+          booking.bookingId === bookingId ? { ...booking, refundStatus: res.status } : booking,
+        );
+        dialogRef.componentInstance.updateMessage(res.message);
       },
       (error) => {
-        this.openDialog(
+        dialogRef.componentInstance.updateMessage(
           error.err || error.message || 'Failed to fetch refund status. Please try again later.',
         );
       },
     );
+    dialogRef.afterClosed().subscribe(() => {
+      subscription.unsubscribe();
+    });
+  };
+
+  createRefund = (bookingId: number) => {
+    this.bookingService.createRefund(bookingId).subscribe(() => {
+      console.log('Request a refund for booking ', bookingId);
+    });
   };
 
   ngOnInit(): void {

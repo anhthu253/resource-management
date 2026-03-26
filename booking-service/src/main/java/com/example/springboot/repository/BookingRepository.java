@@ -19,7 +19,7 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b from Booking b where b.startedAt <= :ended and b.endedAt > :started and b.bookingStatus in (BookingStatus.CONFIRMED, BookingStatus.PENDING_CONFIRMATION)")
     List<Booking> getBookings(LocalDateTime started, LocalDateTime ended);
-    @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus = BookingStatus.CONFIRMED")
+    @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus in (BookingStatus.CONFIRMED, BookingStatus.REPLACED)")
     List<Booking> getBookingsByUserId(Long userId);
     @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus = BookingStatus.PENDING_CONFIRMATION")
     List<Booking> getPendingBookingsByUserId(Long userId);

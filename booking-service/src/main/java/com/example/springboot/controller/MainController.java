@@ -83,6 +83,7 @@ public class MainController {
     public ResponseEntity<?> updateBooking(@RequestBody Long bookingId) {
             try{
                 this.bookingService.updateBooking(bookingId);
+                return ResponseEntity.ok().body("Booking update request is successfully created");
             }
             catch (NoSuchElementException e){
                 return new ResponseEntity<>("Booking not found", HttpStatus.NOT_FOUND);
@@ -93,13 +94,11 @@ public class MainController {
             catch(Exception e){
                 return new ResponseEntity<>("Server error while updating booking", HttpStatus.INTERNAL_SERVER_ERROR);
             }
+    }
 
-            try{
-                return paymentService.createRefund(bookingId);
-            }
-            catch (Exception ex){
-                return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+    @PostMapping("/create-refund")
+    public ResponseEntity<?> createRefund(@RequestBody Long bookingId) {
+            return paymentService.createRefund(bookingId);
     }
     @PostMapping("/cancel")
     public ResponseEntity<?> cancelBooking(@RequestBody Long bookingId) {
@@ -160,8 +159,8 @@ public class MainController {
         EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
         try {
             StripeObject stripeObject = deserializer.deserializeUnsafe();
-            HttpStatus status = paymentService.updatePayment(event.getType(), stripeObject);
-            return new ResponseEntity<>(status);
+            paymentService.updatePayment(event.getType(), stripeObject);
+            return ResponseEntity.ok().build();
         }
         catch(EventDataObjectDeserializationException e){
             log.error(

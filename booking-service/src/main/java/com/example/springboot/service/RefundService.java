@@ -60,33 +60,16 @@ public class RefundService {
             HttpResponse<String> refundResponse = stripeService.postPaymentRefund(bookingId, payment.getChargeId());
             HttpStatus status = HttpStatus.valueOf(refundResponse.statusCode());
             if(status.is2xxSuccessful()){
-                booking.setModificationStatus(ModificationStatus.MODIFIED);
-                bookingRepository.save(booking);
-                payment.setPaymentStatus(PaymentStatus.REFUNDED);
-                paymentRepository.save(payment);
-                var message = "Refund request is successfully created";
-                var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
-                notifyUpdate(update);
-                complete(bookingId);
-                try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
-                }
-                catch(Exception e){
-                    log.error("Unsucessfully publish booking modified event to RabbitMQ");
-                }
+                log.info("Refund successful for bookingId {}", bookingId);
             }
             else if(status==HttpStatus.TOO_MANY_REQUESTS||status.is5xxServerError()){
                 if(attempt == maxRetries){
-                    booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
-                    bookingRepository.save(booking);
-                    payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
+                    payment.setRefundStatus(RefundStatus.FAILED);
+                    var reason = "Max retries reached for refund request";
+                    payment.setRefundFailureReason(reason);
                     paymentRepository.save(payment);
-                    var message = "Max retries reached for refund request";
-                    var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
-                    notifyUpdate(update);
-                    complete(bookingId);
                     try{
-                        bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                        bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
                     }
                     catch(Exception e){
                         log.error("Unsucessfully publish modify failed event to RabbitMQ");
@@ -98,18 +81,14 @@ public class RefundService {
                 }
             }
             else { //4xx error
-                booking.setModificationStatus(ModificationStatus.MODIFY_FAILED);
-                bookingRepository.save(booking);
-                payment.setPaymentStatus(PaymentStatus.REFUND_FAILED);
-                paymentRepository.save(payment);
+                payment.setRefundStatus(RefundStatus.FAILED);
                 ObjectMapper mapper = new ObjectMapper();
                 StripeErrorResponseDto errorResponse = mapper.readValue(refundResponse.body(), StripeErrorResponseDto.class);
-                var message = errorResponse.getError().getMessage();
-                var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message);
-                notifyUpdate(update);
-                complete(bookingId);
+                var reason = errorResponse.getError().getMessage();
+                payment.setRefundFailureReason(reason);
+                paymentRepository.save(payment);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");
@@ -117,10 +96,6 @@ public class RefundService {
             }
         }
         catch(Exception e){
-            var message = "Refund request is failed to proceeded. Please contact us!";
-            var update = new RefundStatusUpdateDto(bookingId, payment.getPaymentStatus(), message   );
-            notifyUpdate(update);
-            complete(bookingId);
             try{
                 bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
             }
@@ -134,7 +109,7 @@ public class RefundService {
     public Flux<RefundStatusUpdateDto> getStatusStream(long bookingId) {
         return getOrCreateSink(bookingId).asFlux();
     }
-    private void notifyUpdate(RefundStatusUpdateDto update) {
+    public void notifyUpdate(RefundStatusUpdateDto update) {
         Sinks.Many<RefundStatusUpdateDto> sink = getOrCreateSink(update.bookingId());
         if (sink != null) {
             sink.tryEmitNext(update);
@@ -145,7 +120,7 @@ public class RefundService {
         return sinks.computeIfAbsent(bookingId,
                 id -> Sinks.many().replay().limit(10));
     }
-    private void complete(long bookingId) {
+    public void complete(long bookingId) {
         Sinks.Many<RefundStatusUpdateDto> sink = sinks.remove(bookingId);
         if (sink != null) {
             sink.tryEmitComplete();

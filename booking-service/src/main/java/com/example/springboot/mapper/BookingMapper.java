@@ -3,30 +3,36 @@ package com.example.springboot.mapper;
 import com.example.springboot.dto.BookingDto;
 import com.example.springboot.dto.ResourceDto;
 import com.example.springboot.model.Booking;
+import com.example.springboot.model.Payment;
+import com.example.springboot.model.RefundStatus;
 import com.example.springboot.model.User;
+import com.example.springboot.repository.BookingRepository;
+import com.example.springboot.repository.PaymentRepository;
 import com.example.springboot.repository.UserRepository;
 import com.example.springboot.service.ResourceService;
 import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.time.ZoneId;
 @Component
 public class BookingMapper {
     private final UserRepository userRepository;
     private final ResourceService resourceService;
-    public BookingMapper(UserRepository userRepository, ResourceService resourceService) {
+    private final PaymentRepository paymentRepository;
+    public BookingMapper(UserRepository userRepository, ResourceService resourceService, PaymentRepository paymentRepository) {
 
         this.userRepository = userRepository;
         this.resourceService = resourceService;
+        this.paymentRepository = paymentRepository;
     }
     public Booking mapBookingDtoToBooking(BookingDto bookingDto){
         if(bookingDto == null) return null;
         var booking = new Booking();
         booking.setBookingGroupId(bookingDto.getBookingGroupId());
         booking.setBookingStatus(bookingDto.getBookingStatus());
-        booking.setModificationStatus(bookingDto.getModificationStatus());
         booking.setStartedAt(bookingDto.getStartedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         booking.setEndedAt(bookingDto.getEndedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         booking.setTotalPrice(bookingDto.getTotalPrice());
@@ -38,6 +44,8 @@ public class BookingMapper {
     }
     public BookingDto mapBookingToBookingDto(Booking booking) {
         if(booking == null) return null;
+        Optional<Payment> payment = paymentRepository.findByBooking(booking);
+        if(!payment.isPresent()) return null;
         try {
             List<ResourceDto> allResource = resourceService.getAllResources();
             var bookingDto = new BookingDto();
@@ -46,7 +54,7 @@ public class BookingMapper {
             bookingDto.setBookingNumber(booking.getBookingNumber());
             bookingDto.setPaymentId(booking.getPayment().getPaymentId());
             bookingDto.setBookingStatus(booking.getBookingStatus());
-            bookingDto.setModificationStatus(booking.getModificationStatus());
+            bookingDto.setRefundStatus(payment.get().getRefundStatus());
             bookingDto.setStartedAt(Date.from(booking.getStartedAt().atZone(ZoneId.systemDefault()).toInstant()));
             bookingDto.setEndedAt(Date.from(booking.getEndedAt().atZone(ZoneId.systemDefault()).toInstant()));
             bookingDto.setTotalPrice(booking.getTotalPrice());

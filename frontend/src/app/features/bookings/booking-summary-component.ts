@@ -15,6 +15,7 @@ import { ActivatedRoute } from '@angular/router';
 export class BookingSummaryComponent implements OnInit {
   booking: BookingDto | null = null;
   resources: ResourceDto[] = [];
+  refundMessage: string = '';
   constructor(
     private bookingService: BookingService,
     private route: ActivatedRoute,
@@ -31,6 +32,13 @@ export class BookingSummaryComponent implements OnInit {
           },
           error: (err) => console.log('error getting current booking'),
         });
+      }
+      const refund = params.get('refund');
+      if (refund === 'true') {
+        this.refundMessage =
+          'You can view the refund status of your previous booking in the "My Bookings" tab.';
+      } else {
+        this.refundMessage = '';
       }
     });
   }

@@ -8,7 +8,7 @@
 
       @if(!booking.isPastBooking){
       <div class="booking-actions">
-        @if(booking?.modificationStatus!=='MODIFY_PENDING'){
+        @if(booking?.bookingStatus==='CONFIRMED'){
           <button mat-icon-button (click)="modifyBooking(booking)">
             <mat-icon>edit</mat-icon>
           </button>
@@ -16,7 +16,7 @@
             <mat-icon>close</mat-icon>
           </button>
         }
-        @else{
+        @else if(booking?.refundStatus == 'PENDING'){
           <button mat-icon-button (click)="trackRefund(booking.bookingId)">
             <mat-icon>track_changes</mat-icon>
           </button>
@@ -49,6 +49,24 @@
         created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
       </div>
     </div>
+    <div class="booking-footer">
+      <span class="booking-status" [ngClass]="{
+        'status-confirmed': booking.bookingStatus === 'CONFIRMED'||booking.refundStatus === 'REFUNDED',
+        'status-pending': booking.refundStatus === 'REFUND_PENDING',
+        'status-cancelled': booking.refundStatus === 'REFUND_FAILED'
+      }">
+        @if(booking.bookingStatus === 'REPLACED'){
+          {{booking.refundStatus.replace('_',' ').replace('NONE','REFUND REQUEST FAILED')}}
+        }
+        @else{
+          {{booking.bookingStatus}}
+        }
+        </span>
+        <span>
+          @if(booking.bookingStatus === "REPLACED" && (booking.refundStatus === 'NONE' || booking.refundStatus === 'REFUND_FAILED')){
+            <button class="primary-btn" (click)="createRefund(booking.bookingId)">Request refund</button>
+          }
+        </span>
   </div>
 </div>
 

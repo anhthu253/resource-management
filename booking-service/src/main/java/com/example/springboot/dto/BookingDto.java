@@ -2,6 +2,7 @@ package com.example.springboot.dto;
 
 import com.example.springboot.model.BookingStatus;
 import com.example.springboot.model.ModificationStatus;
+import com.example.springboot.model.RefundStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +20,7 @@ public class BookingDto {
     private List<ResourceDto> resources;
     private Long paymentId;
     private BookingStatus bookingStatus;
-    private ModificationStatus modificationStatus;
+    private RefundStatus refundStatus;
     private Date startedAt;
     private Date endedAt;
     private Date createdAt;

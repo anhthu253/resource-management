@@ -6,14 +6,12 @@
         Booking {{ booking.bookingNumber }}
       </div>
       <div class="booking-actions">
-        @if(booking?.modificationStatus!=='MODIFY_PENDING'){
-          <button mat-icon-button (click)="modifyBooking(booking)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
-            <mat-icon>close</mat-icon>
-          </button>
-        }
+        <button mat-icon-button (click)="modifyBooking(booking)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
     </div>
     <div class="booking-body">
