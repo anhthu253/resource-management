@@ -125,12 +125,12 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.currentBooking?.bookingId) {
+      console.log('modifying ...', this.currentBookingFormData);
       this.bookingFormGroup.patchValue(this.currentBookingFormData); //populate controls with current booking values
       this.totalPrice = this.currentBooking.totalPrice; //total price of the current booking
       this.changeNotification =
         'You are modifying an existing booking. Please review and update your details below.';
     }
-
     if (this.periodGroup?.valid) {
       this.fetchResources();
     } else {
@@ -138,6 +138,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       this.resourceNormalizedList = [];
       this.cf.detectChanges();
     }
+
     this.periodGroup?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.periodGroup?.valid) {
         this.fetchResources();
@@ -196,14 +197,25 @@ export class NewBookingComponent implements OnInit, OnDestroy {
               ?.setErrors({ empty: 'There is no resources available during this period.' });
           }
           if (this.currentBooking?.bookingId) {
-            const map = new Map();
-            [...res, ...this.currentBooking.resources].forEach((item) => {
-              map.set(item.resourceId, item);
-            }); // combine available resources with current booking resources to make sure all current booking resources are shown in the resource list even they are not available for the selected period, which will avoid confusion for users when they modify an existing booking.
-            this.resourceList = [...map.values()];
-          } else {
-            this.resourceList = res;
+            if (
+              this.currentBooking.startedAt &&
+              new Date(this.currentBooking.startedAt) <=
+                new Date(this.periodGroup.get('startedAt')?.value) &&
+              this.currentBooking.endedAt &&
+              new Date(this.currentBooking.endedAt) >=
+                new Date(this.periodGroup.get('endedAt')?.value)
+            ) {
+              const map = new Map();
+              [...res, ...this.currentBooking.resources].forEach((item) => {
+                map.set(item.resourceId, item);
+              }); // combine available resources with current booking resources to make sure all current booking resources are shown in the resource list even they are not available for the selected period, which will avoid confusion for users when they modify an existing booking.
+              this.resourceList = [...map.values()];
+            } else {
+              this.resourceList = res;
+            }
           }
+          else this.resourceList = res;
+
           this.resourceNormalizedList = this.resourceList.map((entry) => {
             return {
               id: entry.resourceId,
