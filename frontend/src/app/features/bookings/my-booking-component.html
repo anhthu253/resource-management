@@ -52,8 +52,8 @@
     <div class="booking-footer">
       <span class="booking-status" [ngClass]="{
         'status-confirmed': booking.bookingStatus === 'CONFIRMED'||booking.refundStatus === 'REFUNDED',
-        'status-pending': booking.refundStatus === 'REFUND_PENDING',
-        'status-cancelled': booking.refundStatus === 'REFUND_FAILED'
+        'status-pending': booking.refundStatus === 'PENDING',
+        'status-cancelled': booking.refundStatus === 'FAILED'
       }">
         @if(booking.bookingStatus === 'REPLACED'){
           {{booking.refundStatus.replace('_',' ').replace('NONE','REFUND REQUEST FAILED')}}
