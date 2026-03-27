@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeartbeatService } from './core/services/heartbeat.service';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +9,4 @@ import { HeartbeatService } from './core/services/heartbeat.service';
 })
 export class App {
   protected readonly title = signal('my-angular-app');
-  constructor(private heartbeat: HeartbeatService) {
-    this.heartbeat.start();
-  }
 }
