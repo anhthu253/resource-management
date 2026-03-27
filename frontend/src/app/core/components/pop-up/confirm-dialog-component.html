@@ -1,8 +1,15 @@
-<mat-dialog-content>
-  {{ data.message }}
+<mat-dialog-content class="confirm-dialog">
+  <div class="icon-container">
+    <mat-icon>help_outline</mat-icon>
+  </div>
+
+  <div class="message">
+    {{ data.message }}
+  </div>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onNo()">No</button>
+
+<mat-dialog-actions align="end" class="actions">
+  <button mat-stroked-button (click)="onNo()">No</button>
   <button mat-raised-button color="primary" (click)="onYes()">Yes</button>
 </mat-dialog-actions>

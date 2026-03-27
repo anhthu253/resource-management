@@ -1,3 +1,42 @@
-button {
-  margin-right: 8px;
+.notification-dialog {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 8px 8px 8px;
+}
+
+.icon-container {
+  background-color: rgba(15, 118, 110, 0.1);
+  color: #0F766E;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-container mat-icon {
+  font-size: 24px;
+}
+
+.message {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.actions {
+  padding: 8px 8px 16px 8px;
+  gap: 8px;
+}
+
+button[mat-raised-button] {
+  background-color: #0F766E;
+  color: white;
+}
+
+button[mat-raised-button]:hover {
+  background-color: #0d5f59;
 }

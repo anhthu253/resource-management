@@ -5,13 +5,14 @@ import {
   MatDialogContent,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   standalone: true,
   selector: 'app-popup',
   templateUrl: './notification-component.html',
   styleUrl: './notification-component.css',
-  imports: [MatDialogActions, MatDialogContent],
+  imports: [MatDialogActions, MatDialogContent, MatIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationDialog {

@@ -1,7 +1,14 @@
-<mat-dialog-content>
-  {{ message }}
+<mat-dialog-content class="notification-dialog">
+  <div class="icon-container">
+    <mat-icon>notifications</mat-icon>
+  </div>
+
+  <div class="message">
+    {{ message }}
+  </div>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+
+<mat-dialog-actions align="end" class="actions">
   <button mat-raised-button color="primary" (click)="onOK()">OK</button>
 </mat-dialog-actions>
