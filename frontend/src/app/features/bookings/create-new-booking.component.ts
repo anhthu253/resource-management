@@ -44,6 +44,8 @@ import { MatCardModule } from '@angular/material/card';
   ],
 })
 export class NewBookingComponent implements OnInit, OnDestroy {
+  fromEdit = false;
+  fromPayment = false;
   resourceList: ResourceDto[] = [];
   resourceNormalizedList: { id: number; name: string }[] = [];
   isResourceLoading = false;
@@ -124,16 +126,18 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const fromEdit = history.state?.fromEdit;
-    if (!fromEdit) {
+    this.fromEdit = history.state?.fromEdit;
+    this.fromPayment = history.state?.fromPayment;
+    if (!this.fromEdit && !this.fromPayment) {
       this.bookingStateService.clearBooking();
     }
 
     if (this.currentBooking?.bookingId) {
       this.bookingFormGroup.patchValue(this.currentBookingFormData); //populate controls with current booking values
       this.totalPrice = this.currentBooking.totalPrice; //total price of the current booking
-      this.changeNotification =
-        'You are modifying an existing booking. Please review and update your details below.';
+      if (this.fromEdit)
+        this.changeNotification =
+          'You are modifying an existing booking. Please review and update your details below.';
     }
     if (this.periodGroup?.valid) {
       this.fetchResources();
@@ -195,11 +199,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: ResourceDto[]) => {
           this.isResourceLoading = false;
-          if (!res.length) {
-            this.bookingFormGroup
-              .get('resourceIds')
-              ?.setErrors({ empty: 'There is no resources available during this period.' });
-          }
+
           if (this.currentBooking?.bookingId) {
             if (
               this.currentBooking.startedAt &&
@@ -218,6 +218,12 @@ export class NewBookingComponent implements OnInit, OnDestroy {
               this.resourceList = res;
             }
           } else this.resourceList = res;
+
+          if (!this.resourceList.length) {
+            this.bookingFormGroup
+              .get('resourceIds')
+              ?.setErrors({ empty: 'There is no resources available during this period.' });
+          }
 
           this.resourceNormalizedList = this.resourceList.map((entry) => {
             return {
@@ -271,12 +277,11 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
       this.bookingService.createBooking(postData).subscribe({
         next: (res) => {
-          this.router.navigate(['/payment'], {
-            queryParams: {
-              bookingId: res.bookingId,
-              paymentId: res.paymentId,
-            },
+          this.bookingStateService.setBooking({
+            ...res,
+            replacedBookingId: this.currentBooking?.bookingId,
           });
+          this.router.navigate(['/payment']);
         },
         error: (err) => {
           this.openFailureAlert(err.error || err.message);
@@ -286,11 +291,13 @@ export class NewBookingComponent implements OnInit, OnDestroy {
   };
 
   updateBooking = () => {
-    if (!this.currentBooking?.bookingId) return;
     if (
       JSON.stringify(this.bookingFormGroup.value) === JSON.stringify(this.currentBookingFormData)
     ) {
-      return; // if user hasn't changed the current booking, stop proceeding further
+      if (this.fromEdit) return; // if user hasn't changed the current booking, stop proceeding further
+      if (this.fromPayment)
+        //if nothing changed, going back to payment without updating the booking
+        this.router.navigate(['/payment']);
     }
 
     this.bookingService
@@ -308,7 +315,7 @@ export class NewBookingComponent implements OnInit, OnDestroy {
 
   toPayment = () => {
     if (this.currentBooking?.bookingId)
-      //change booking
+      //modify booking
       this.updateBooking();
     else this.createBooking();
   };

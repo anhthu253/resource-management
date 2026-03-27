@@ -107,23 +107,20 @@ export class MyBookingComponent implements OnInit {
       },
     });
     this.bookingService.createRefund(booking.bookingId).subscribe((res) => {
-      if (res.status === 'NOT_ELIGIBLE') {
-        //there is still a pending booking or unpaid booking that has been expired
-        dialogRef.componentInstance.updateMessage(res.message);
-        this.bookings = this.bookings.map((b) =>
-          b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
-        );
-        this.cdr.detectChanges();
-      } else {
-        //track refund process
-        this.refundService.getRefundStatusStream(booking.bookingId).subscribe((res) => {
-          dialogRef.componentInstance.updateMessage(res.message);
-          this.bookings = this.bookings.map((b) =>
-            b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
-          );
-          this.cdr.detectChanges();
-        });
-      }
+      //there is still a pending booking or unpaid booking that has been expired
+      dialogRef.componentInstance.updateMessage(res.message);
+      this.bookings = this.bookings.map((b) =>
+        b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
+      );
+      this.cdr.detectChanges();
+    });
+    //track refund process
+    this.refundService.getRefundStatusStream(booking.bookingId).subscribe((res) => {
+      dialogRef.componentInstance.updateMessage(res.message);
+      this.bookings = this.bookings.map((b) =>
+        b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
+      );
+      this.cdr.detectChanges();
     });
   };
 

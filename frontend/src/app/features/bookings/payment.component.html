@@ -19,10 +19,15 @@
     <label>CVC</label>
     <div id="card-cvc"></div>
   </div>
+</div>
+<div>
   <p>{{cardWarningMessage}}</p>
-  <button mat-raised-button color="primary" (click)="pay()">Pay</button>
   <p class="error">{{cardNumberError}}</p>
   <p class="error">{{cardExpiryError}}</p>
   <p class="error">{{failPaymentmessage}}</p>
 </div>
+ <div class="actions">
+    <button class="secondary-btn" (click)="goBack()">Back</button>
+    <button class="primary-btn" (click)="pay()">Pay</button>
+  </div>
 

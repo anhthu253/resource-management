@@ -16,6 +16,7 @@ import { MatSpinner } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
+import { BookingStateService } from '../../core/services/booking.state.service';
 
 @Component({
   standalone: true,
@@ -34,6 +35,7 @@ export class PendingBookingsComponent implements OnInit {
     private router: Router,
     private dialog: MatDialog,
     private bookingService: BookingService,
+    private bookingStateService: BookingStateService,
     private userService: UserService,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -63,12 +65,8 @@ export class PendingBookingsComponent implements OnInit {
   };
 
   modifyBooking = (booking: BookingDto) => {
-    this.router.navigate(['/payment'], {
-      queryParams: {
-        bookingId: booking.bookingId,
-        paymentId: booking.paymentId,
-      },
-    });
+    this.bookingStateService.setBooking(booking);
+    this.router.navigate(['/payment']);
   };
   ngOnInit(): void {
     const userId = this.userService.getUser()?.userId;

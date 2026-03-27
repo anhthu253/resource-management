@@ -3,6 +3,7 @@ package com.example.springboot.service;
 import com.example.springboot.dto.PaymentIntentDto;
 import com.example.springboot.dto.PaymentIntentResponseDto;
 import com.example.springboot.dto.StatusUpdateDto;
+import com.example.springboot.dto.StripeErrorResponseDto;
 import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
 import com.example.springboot.repository.PaymentRepository;
@@ -178,7 +179,10 @@ public class PaymentService {
             } else if (status.is4xxClientError()){
                 payment.setRefundStatus(RefundStatus.FAILED);
                 paymentRepository.save(payment);
-                update = new StatusUpdateDto(bookingId, RefundStatus.FAILED, "We couldn’t create your refund request. Please try again.");
+                ObjectMapper mapper = new ObjectMapper();
+                StripeErrorResponseDto errorResponse = mapper.readValue(refundResponse.body(), StripeErrorResponseDto.class);
+                var reason = errorResponse.getError().getMessage();
+                update = new StatusUpdateDto(bookingId, RefundStatus.FAILED, String.format("We couldn’t create your refund request: %s.", reason));
                 statusUpdateService.notifyUpdate(update);
                 statusUpdateService.complete(bookingId);
                 try{
@@ -187,7 +191,7 @@ public class PaymentService {
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");
                 }
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",RefundStatus.FAILED, "message","Failed to create refund request."));
+                return ResponseEntity.ok().body(Map.of("status",RefundStatus.FAILED, "message",String.format("Failed to create refund request:%s.", reason)));
             }
             else{
                 payment.setRefundStatus(RefundStatus.FAILED);
@@ -200,12 +204,12 @@ public class PaymentService {
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");
                 }
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", RefundStatus.FAILED, "message","Failed to create refund request."));
+                return ResponseEntity.ok().body(Map.of("status", RefundStatus.FAILED, "message","Failed to create refund request."));
             }
+
         }
         catch(Exception e){
-            var update = new StatusUpdateDto(bookingId, RefundStatus.FAILED, "We couldn’t create your refund request. Please try again.");
-            statusUpdateService.notifyUpdate(update);
+            log.error(String.format("Failed to create refund request due to %s"),e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status",RefundStatus.FAILED, "message","Failed to create refund request."));
         }
     }

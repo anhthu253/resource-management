@@ -20,6 +20,7 @@ export interface BookingDto {
   resources: ResourceDto[];
   totalPrice: number;
   userId: number;
+  replacedBookingId?: number;
 }
 
 export interface PaymentIntentDto {

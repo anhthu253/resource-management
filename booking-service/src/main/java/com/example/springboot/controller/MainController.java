@@ -66,7 +66,8 @@ public class MainController {
     public ResponseEntity<?> createBooking(@RequestBody BookingDto bookingRequestDto) {
         try{
             Booking bookingRequest = bookingMapper.mapBookingDtoToBooking(bookingRequestDto);
-            BookingResponseDto result = this.bookingService.createBooking(bookingRequest);
+            Booking booking = this.bookingService.createBooking(bookingRequest);
+            BookingDto result = this.bookingMapper.mapBookingToBookingDto(booking);
             return new ResponseEntity<>(result, HttpStatus.OK);
         }
         catch(Exception ex){

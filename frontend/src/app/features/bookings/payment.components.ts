@@ -20,13 +20,14 @@ import {
 } from '@stripe/stripe-js';
 import { environment } from '../../../environments/environment';
 import { BookingDto, PaymentIntentDto } from '../../core/dtos/booking.dto';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { MatButton } from '@angular/material/button';
 import { NotificationDialog } from '../../core/components/pop-up/notification-component';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -36,7 +37,9 @@ import { BookingStateService } from '../../core/services/booking.state.service';
   imports: [ReactiveFormsModule, CommonModule, RadioButton, MatButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaymentComponent implements AfterViewInit, OnDestroy {
+export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
+  private navSub!: Subscription;
+
   paymentBrands = ['Visa', 'Mastercard', 'Paypal'];
   selectedBrand = new FormControl<string>('');
   detectedBrand = 'unknown';
@@ -61,7 +64,6 @@ export class PaymentComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
     private bookingService: BookingService,
     private bookingStateService: BookingStateService,
     private changeDetector: ChangeDetectorRef,
@@ -73,7 +75,21 @@ export class PaymentComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.bookingStateService.clearBooking();
+    this.navSub.unsubscribe();
+  }
+
+  ngOnInit(): void {
+    //subscribe to navigation events
+    this.navSub = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        // check if user is leaving payment
+        const goingBackToBooking = event.url.includes('/new-booking');
+        if (!goingBackToBooking) {
+          // clear booking if NOT going back to booking
+          this.bookingStateService.clearBooking();
+        }
+      }
+    });
   }
 
   async ngAfterViewInit() {
@@ -127,6 +143,11 @@ export class PaymentComponent implements AfterViewInit, OnDestroy {
     });
   };
 
+  goBack() {
+    this.router.navigate(['/new-booking'], {
+      state: { fromPayment: true },
+    });
+  }
   async pay() {
     const { paymentMethod, error } = await this.stripe.createPaymentMethod({
       type: 'card',
@@ -137,49 +158,46 @@ export class PaymentComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.route.queryParamMap.subscribe((params) => {
-      const bookingId = params.get('bookingId');
-      const paymentId = params.get('paymentId');
-      if (!bookingId || !paymentId) return;
-      this.paymentIntent.bookingId = +bookingId;
-      this.paymentIntent.paymentId = +paymentId;
-      this.paymentIntent.paymentMethodId = paymentMethod?.id;
-      this.bookingService
-        .createPaymentIntent(this.paymentIntent)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: async (res) => {
-            const result = await this.stripe.confirmCardPayment(res);
-            if (result.paymentIntent?.status === 'succeeded') {
-              if (this.currentBooking?.bookingId) {
-                //create refund for the previous booking
-                this.bookingService.createRefund(this.currentBooking.bookingId).subscribe({
-                  next: (res) => {
-                    this.router.navigate(['/booking-summary'], {
-                      queryParams: {
-                        bookingId: bookingId,
-                        refund: true,
-                      },
-                    });
-                  },
-                  error: (err) => {},
-                }); //create a refund for the original payment of the current booking, which will be processed asynchronously by the backend. Users will receive email notifications from Stripe about the refund status.
-              } else {
-                this.router.navigate(['/booking-summary'], {
-                  queryParams: {
-                    bookingId: bookingId,
-                    refund: false,
-                  },
-                });
-              }
-            } else this.openDialog('Payment is not processed. Please try again later.');
-          },
-          error: (err) => {
-            this.openDialog(
-              err.error || err.message || 'Failed to process payment. Please try again later.',
-            );
-          },
-        });
-    });
+    const booking = this.bookingStateService.getBooking();
+    if (!booking || !booking.bookingGroupId || !booking.paymentId) return;
+    this.paymentIntent.bookingId = booking.bookingId;
+    this.paymentIntent.paymentId = booking.paymentId;
+    this.paymentIntent.paymentMethodId = paymentMethod?.id;
+    this.bookingService
+      .createPaymentIntent(this.paymentIntent)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: async (res) => {
+          const result = await this.stripe.confirmCardPayment(res);
+          if (result.paymentIntent?.status === 'succeeded') {
+            if (booking.replacedBookingId) {
+              //create refund for the previous booking
+              this.bookingService.createRefund(booking.replacedBookingId).subscribe({
+                next: (res) => {
+                  this.router.navigate(['/booking-summary'], {
+                    queryParams: {
+                      bookingId: booking.bookingId,
+                      refund: true,
+                    },
+                  });
+                },
+                error: (err) => {},
+              }); //create a refund for the original payment of the current booking, which will be processed asynchronously by the backend. Users will receive email notifications from Stripe about the refund status.
+            } else {
+              this.router.navigate(['/booking-summary'], {
+                queryParams: {
+                  bookingId: booking.bookingId,
+                  refund: false,
+                },
+              });
+            }
+          } else this.openDialog('Payment is not processed. Please try again later.');
+        },
+        error: (err) => {
+          this.openDialog(
+            err.error || err.message || 'Failed to process payment. Please try again later.',
+          );
+        },
+      });
   }
 }

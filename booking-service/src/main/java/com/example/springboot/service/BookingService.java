@@ -33,7 +33,7 @@ public class BookingService {
         this.bookingEventPublisher = bookingEventPublisher;
     }
     @Transactional
-    public BookingResponseDto createBooking(Booking booking) {
+    public Booking createBooking(Booking booking) {
         if(booking.getBookingGroupId() == null){
             booking.setBookingGroupId(UUID.randomUUID());
         }
@@ -41,9 +41,10 @@ public class BookingService {
         booking.setCreatedAt(LocalDateTime.now());
         booking.setExpiredAt(LocalDateTime.now().plusMinutes(15)); //users have 15 minutes to pay
         booking.setBookingNumber(generateBookingNumber());
-        booking = this.bookingRepository.save(booking);
         Payment payment = paymentService.createPayment(booking);
-        return new BookingResponseDto(booking.getBookingId(), booking.getBookingNumber(), payment.getPaymentId());
+        booking.setPayment(payment);
+        booking = this.bookingRepository.save(booking);
+        return booking;
     }
     public void updateBooking(long bookingId) throws Exception{
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();

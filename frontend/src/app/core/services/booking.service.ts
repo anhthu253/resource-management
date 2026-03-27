@@ -28,8 +28,8 @@ export class BookingService {
     );
   };
 
-  createBooking = (bookingRequest: BookingDto): Observable<BookingResponseDto> => {
-    return this.http.post<BookingResponseDto>(
+  createBooking = (bookingRequest: BookingDto): Observable<BookingDto> => {
+    return this.http.post<BookingDto>(
       `${this.configService.apiUrl}/booking/create`,
       bookingRequest,
       {
