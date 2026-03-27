@@ -76,35 +76,54 @@ export class MyBookingComponent implements OnInit {
     });
   };
 
-  trackRefund = (bookingId: number) => {
-    let message = 'Your refund request is being processed. You’ll see live updates here.';
+  getUpdatedRefundStatus = (bookingId: number) => {
+    this.bookingService.getCurrentBooking(bookingId).subscribe(
+      (res) => {
+        this.bookings = this.bookings.map((booking) =>
+          booking.bookingId === bookingId
+            ? { ...booking, refundStatus: res.refundStatus }
+            : booking,
+        );
+      },
+      (error) => {
+        this.dialog.open(NotificationDialog, {
+          width: '350px',
+          data: {
+            message:
+              error.err ||
+              error.message ||
+              'Failed to fetch refund status. Please try again later.',
+          },
+        });
+      },
+    );
+  };
+
+  requestRefund = (booking: BookingDto) => {
     const dialogRef = this.dialog.open(NotificationDialog, {
       width: '350px',
       data: {
-        message: message,
+        message: 'Please wait...',
       },
     });
-    const subscription = this.refundService.getRefundStatusStream(bookingId).subscribe(
-      (res) => {
-        this.bookings = this.bookings.map((booking) =>
-          booking.bookingId === bookingId ? { ...booking, refundStatus: res.status } : booking,
-        );
+    this.bookingService.createRefund(booking.bookingId).subscribe((res) => {
+      if (res.status === 'NOT_ELIGIBLE') {
+        //there is still a pending booking or unpaid booking that has been expired
         dialogRef.componentInstance.updateMessage(res.message);
-      },
-      (error) => {
-        dialogRef.componentInstance.updateMessage(
-          error.err || error.message || 'Failed to fetch refund status. Please try again later.',
+        this.bookings = this.bookings.map((b) =>
+          b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
         );
-      },
-    );
-    dialogRef.afterClosed().subscribe(() => {
-      subscription.unsubscribe();
-    });
-  };
-
-  createRefund = (bookingId: number) => {
-    this.bookingService.createRefund(bookingId).subscribe(() => {
-      console.log('Request a refund for booking ', bookingId);
+        this.cdr.detectChanges();
+      } else {
+        //track refund process
+        this.refundService.getRefundStatusStream(booking.bookingId).subscribe((res) => {
+          dialogRef.componentInstance.updateMessage(res.message);
+          this.bookings = this.bookings.map((b) =>
+            b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
+          );
+          this.cdr.detectChanges();
+        });
+      }
     });
   };
 

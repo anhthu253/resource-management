@@ -1,8 +1,8 @@
 package com.example.springboot.model;
 
-public enum RefundStatus {
+public enum RefundStatus implements Status {
     NONE,
-    INITIATED,
+    NOT_ELIGIBLE,
     PENDING,
     REFUNDED,
     FAILED,

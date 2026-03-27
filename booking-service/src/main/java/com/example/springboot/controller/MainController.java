@@ -5,7 +5,7 @@ import com.example.springboot.mapper.BookingMapper;
 import com.example.springboot.model.Booking;
 import com.example.springboot.service.BookingService;
 import com.example.springboot.service.PaymentService;
-import com.example.springboot.service.RefundService;
+import com.example.springboot.service.StatusUpdateService;
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -34,15 +34,15 @@ public class MainController {
     private final BookingService bookingService;
     private final PaymentService paymentService;
     private final BookingMapper bookingMapper;
-    private final RefundService refundService;
+    private final StatusUpdateService statusUpdateService;
     @Value("${stripe.webhook.secret}")
     private String endpointSecret;
 
-    public MainController(BookingService bookingService, PaymentService paymentService, BookingMapper bookingMapper, RefundService refundService) {
+    public MainController(BookingService bookingService, PaymentService paymentService, BookingMapper bookingMapper, StatusUpdateService statusUpdateService) {
         this.bookingService = bookingService;
         this.paymentService = paymentService;
         this.bookingMapper = bookingMapper;
-        this.refundService = refundService;
+        this.statusUpdateService = statusUpdateService;
     }
     @GetMapping("/all-resources")
     public ResponseEntity<?> getAllResources() {
@@ -73,7 +73,6 @@ public class MainController {
             return new ResponseEntity<>("Failed to create booking", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @PostMapping("/total-price")
     public ResponseEntity<Double> getTotalPrice(@RequestBody BookingDto bookingDto){
         double totalPrice = this.bookingService.getTotalPricePerBooking(bookingDto);
@@ -142,8 +141,8 @@ public class MainController {
             path = "/refund/status/{bookingId}",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE
     )
-    public Flux<RefundStatusUpdateDto> stream(@PathVariable Long bookingId) {
-        return refundService.getStatusStream(bookingId);
+    public Flux<StatusUpdateDto> stream(@PathVariable Long bookingId) {
+        return statusUpdateService.getStatusStream(bookingId);
     }
     @PostMapping("/webhooks/stripe")
     public ResponseEntity<?> handleStripeWebhook(@RequestBody String payload,

@@ -27,6 +27,4 @@ public class Payment {
     private PaymentStatus paymentStatus;
     @Enumerated(EnumType.STRING)
     private RefundStatus refundStatus;
-    @Column(length = 500)
-    private String refundFailureReason;
 }

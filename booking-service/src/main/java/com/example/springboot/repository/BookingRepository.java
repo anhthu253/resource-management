@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -24,6 +25,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus = BookingStatus.PENDING_CONFIRMATION")
     List<Booking> getPendingBookingsByUserId(Long userId);
     Optional<Booking> findByPayment(Payment payment);
+    Optional<Booking> findByBookingGroupIdAndBookingStatus(UUID bookingGroupId, BookingStatus bookingStatus);
     List<Booking> findByBookingStatusAndExpiredAtBefore(BookingStatus bookingStatus, LocalDateTime time);
     @Query("SELECT nextval('booking_number_seq')")
     Long getBookingSequence();

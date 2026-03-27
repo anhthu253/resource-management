@@ -45,11 +45,14 @@ export class BookingService {
     });
   };
 
-  createRefund = (bookingId: number): Observable<string> => {
-    return this.http.post<string>(`${this.configService.apiUrl}/booking/create-refund`, bookingId, {
-      withCredentials: true,
-      responseType: 'text' as 'json',
-    });
+  createRefund = (bookingId: number): Observable<{ status: string; message: string }> => {
+    return this.http.post<{ status: string; message: string }>(
+      `${this.configService.apiUrl}/booking/create-refund`,
+      bookingId,
+      {
+        withCredentials: true,
+      },
+    );
   };
 
   cancelBooking = (bookingId: number): Observable<void> => {

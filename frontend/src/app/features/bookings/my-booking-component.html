@@ -8,7 +8,7 @@
 
       @if(!booking.isPastBooking){
       <div class="booking-actions">
-        @if(booking?.bookingStatus==='CONFIRMED'){
+        @if(booking?.bookingStatus==='CONFIRMED' || booking?.refundStatus==='NOT_ELIGIBLE' || booking?.refundStatus==='NONE'){
           <button mat-icon-button (click)="modifyBooking(booking)">
             <mat-icon>edit</mat-icon>
           </button>
@@ -17,8 +17,8 @@
           </button>
         }
         @else if(booking?.refundStatus == 'PENDING'){
-          <button mat-icon-button (click)="trackRefund(booking.bookingId)">
-            <mat-icon>track_changes</mat-icon>
+          <button mat-icon-button (click)="getUpdatedRefundStatus(booking.bookingId)">
+            <mat-icon>refresh</mat-icon>
           </button>
         }
       </div>
@@ -53,18 +53,18 @@
       <span class="booking-status" [ngClass]="{
         'status-confirmed': booking.bookingStatus === 'CONFIRMED'||booking.refundStatus === 'REFUNDED',
         'status-pending': booking.refundStatus === 'PENDING',
-        'status-cancelled': booking.refundStatus === 'FAILED'
+        'status-cancelled': booking.bookingStatus === 'REPLACED' && (booking.refundStatus === 'FAILED' || booking.refundStatus === 'NOT_ELIGIBLE'||booking.refundStatus === 'NONE')
       }">
         @if(booking.bookingStatus === 'REPLACED'){
-          {{booking.refundStatus.replace('_',' ').replace('NONE','REFUND REQUEST FAILED')}}
+          {{booking.refundStatus.replace('NOT_ELIGIBLE','REFUND FAILED').replace('NONE','REFUND FAILED').replace('FAILED','REFUND FAILED').replace('PENDING','REFUND PENDING')}}
         }
         @else{
           {{booking.bookingStatus}}
         }
         </span>
         <span>
-          @if(booking.bookingStatus === "REPLACED" && (booking.refundStatus === 'NONE' || booking.refundStatus === 'REFUND_FAILED')){
-            <button class="primary-btn" (click)="createRefund(booking.bookingId)">Request refund</button>
+          @if(booking.bookingStatus === "REPLACED" && (booking.refundStatus === 'FAILED'||booking.refundStatus === "NOT_ELIGIBLE"||booking.refundStatus === "NONE")){
+            <button class="primary-btn" (click)="requestRefund(booking)">Request refund</button>
           }
         </span>
   </div>
