@@ -1,9 +1,17 @@
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { BookingDto } from '../../core/dtos/booking.dto';
 import { BookingService } from '../../core/services/booking.service';
 import { ResourceDto } from '../../core/dtos/resource.dto';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   standalone: true,
   selector: 'app-booking-summary',
@@ -16,6 +24,7 @@ export class BookingSummaryComponent implements OnInit {
   booking: BookingDto | null = null;
   resources: ResourceDto[] = [];
   refundMessage: string = '';
+  private destroyRef = inject(DestroyRef);
   constructor(
     private bookingService: BookingService,
     private route: ActivatedRoute,
@@ -25,13 +34,16 @@ export class BookingSummaryComponent implements OnInit {
     this.route.queryParamMap.subscribe((params) => {
       const bookingId = params.get('bookingId');
       if (bookingId) {
-        this.bookingService.getCurrentBooking(+bookingId).subscribe({
-          next: (res: BookingDto) => {
-            this.booking = res;
-            this.changeDetector.markForCheck();
-          },
-          error: (err) => console.log('error getting current booking'),
-        });
+        this.bookingService
+          .getCurrentBooking(+bookingId)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res: BookingDto) => {
+              this.booking = res;
+              this.changeDetector.markForCheck();
+            },
+            error: (err) => console.log('error getting current booking'),
+          });
       }
       const refund = params.get('refund');
       if (refund === 'true') {

@@ -56,15 +56,18 @@ export class MyBookingComponent implements OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.bookingService.cancelBooking(bookingId).subscribe({
-            next: () => {
-              this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
-              this.cdr.detectChanges();
-            },
-            error: (err) => {
-              console.log('Booking was not canceled');
-            },
-          });
+          this.bookingService
+            .cancelBooking(bookingId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.log('Booking was not canceled');
+              },
+            });
         }
       });
   };
@@ -77,26 +80,27 @@ export class MyBookingComponent implements OnInit {
   };
 
   getUpdatedRefundStatus = (bookingId: number) => {
-    this.bookingService.getCurrentBooking(bookingId).subscribe(
-      (res) => {
-        this.bookings = this.bookings.map((booking) =>
-          booking.bookingId === bookingId
-            ? { ...booking, refundStatus: res.refundStatus }
-            : booking,
-        );
-      },
-      (error) => {
-        this.dialog.open(NotificationDialog, {
-          width: '350px',
-          data: {
-            message:
-              error.err ||
-              error.message ||
-              'Failed to fetch refund status. Please try again later.',
-          },
-        });
-      },
-    );
+    this.bookingService
+      .getCurrentBooking(bookingId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.bookings = this.bookings.map((booking) =>
+            booking.bookingId === bookingId
+              ? { ...booking, refundStatus: res.refundStatus }
+              : booking,
+          );
+        },
+        error: (err) => {
+          this.dialog.open(NotificationDialog, {
+            width: '350px',
+            data: {
+              message:
+                err.err || err.message || 'Failed to fetch refund status. Please try again later.',
+            },
+          });
+        },
+      });
   };
 
   requestRefund = (booking: BookingDto) => {
@@ -106,22 +110,28 @@ export class MyBookingComponent implements OnInit {
         message: 'Please wait...',
       },
     });
-    this.bookingService.createRefund(booking.bookingId).subscribe((res) => {
-      //there is still a pending booking or unpaid booking that has been expired
-      dialogRef.componentInstance.updateMessage(res.message);
-      this.bookings = this.bookings.map((b) =>
-        b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
-      );
-      this.cdr.detectChanges();
-    });
+    this.bookingService
+      .createRefund(booking.bookingId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        //there is still a pending booking or unpaid booking that has been expired
+        dialogRef.componentInstance.updateMessage(res.message);
+        this.bookings = this.bookings.map((b) =>
+          b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
+        );
+        this.cdr.detectChanges();
+      });
     //track refund process
-    this.refundService.getRefundStatusStream(booking.bookingId).subscribe((res) => {
-      dialogRef.componentInstance.updateMessage(res.message);
-      this.bookings = this.bookings.map((b) =>
-        b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
-      );
-      this.cdr.detectChanges();
-    });
+    this.refundService
+      .getRefundStatusStream(booking.bookingId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        dialogRef.componentInstance.updateMessage(res.message);
+        this.bookings = this.bookings.map((b) =>
+          b.bookingId === booking.bookingId ? { ...b, refundStatus: res.status } : b,
+        );
+        this.cdr.detectChanges();
+      });
   };
 
   ngOnInit(): void {

@@ -51,15 +51,18 @@ export class PendingBookingsComponent implements OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.bookingService.cancelBooking(bookingId).subscribe({
-            next: () => {
-              this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
-              this.cdr.detectChanges();
-            },
-            error: (err) => {
-              console.log('Booking was not canceled');
-            },
-          });
+          this.bookingService
+            .cancelBooking(bookingId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.bookings = this.bookings.filter((booking) => booking.bookingId !== bookingId);
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.log('Booking was not canceled');
+              },
+            });
         }
       });
   };

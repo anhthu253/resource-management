@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { ValidationService } from '../../core/services/validation.service';
@@ -9,6 +9,7 @@ import { NotificationDialog } from '../../core/components/pop-up/notification-co
 import { Router } from '@angular/router';
 import { MatInput } from '../../core/components/input/input.component';
 import { UserDto } from '../../core/dtos/user.dto';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -20,6 +21,7 @@ import { UserDto } from '../../core/dtos/user.dto';
 export class RegisterComponent {
   registerForm: FormGroup;
   errorMessage = '';
+  private destroyRef = inject(DestroyRef);
   constructor(
     private fb: FormBuilder,
     private validationService: ValidationService,
@@ -42,21 +44,24 @@ export class RegisterComponent {
   onRegister = () => {
     if (this.registerForm.valid) {
       console.log('Form is valid, submitting registration data:', this.registerForm.value);
-      this.authService.createUser(this.registerForm.value as UserDto).subscribe({
-        next: (user) => {
-          this.dialog
-            .open(NotificationDialog, {
-              width: '400px',
-              data: {
-                message: 'Registration successful! Please log in.',
-              },
-            })
-            .afterClosed()
-            .subscribe(() => {
-              this.router.navigate(['/login']);
-            });
-        },
-      });
+      this.authService
+        .createUser(this.registerForm.value as UserDto)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (user) => {
+            this.dialog
+              .open(NotificationDialog, {
+                width: '400px',
+                data: {
+                  message: 'Registration successful! Please log in.',
+                },
+              })
+              .afterClosed()
+              .subscribe(() => {
+                this.router.navigate(['/login']);
+              });
+          },
+        });
     } else {
       this.errorMessage = 'Please fix the errors in the form before submitting.';
     }

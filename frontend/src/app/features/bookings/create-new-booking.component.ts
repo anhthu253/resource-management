@@ -158,13 +158,16 @@ export class NewBookingComponent implements OnInit, OnDestroy {
     });
 
     //update total price upon selecting resources
-    this.bookingFormGroup.get('resourceIds')?.valueChanges.subscribe(() => {
-      this.bookingService
-        .getTotalPrice({ ...this.periodGroup.value, resources: this.selectedResources })
-        .subscribe((price) => {
-          this.totalPrice = price;
-        });
-    });
+    this.bookingFormGroup
+      .get('resourceIds')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.bookingService
+          .getTotalPrice({ ...this.periodGroup.value, resources: this.selectedResources })
+          .subscribe((price) => {
+            this.totalPrice = price;
+          });
+      });
   }
 
   openUpdateConfirm = (message: string) => {
@@ -275,18 +278,21 @@ export class NewBookingComponent implements OnInit, OnDestroy {
         totalPrice: this.totalPrice,
       };
 
-      this.bookingService.createBooking(postData).subscribe({
-        next: (res) => {
-          this.bookingStateService.setBooking({
-            ...res,
-            replacedBookingId: this.currentBooking?.bookingId,
-          });
-          this.router.navigate(['/payment']);
-        },
-        error: (err) => {
-          this.openFailureAlert(err.error || err.message);
-        },
-      });
+      this.bookingService
+        .createBooking(postData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.bookingStateService.setBooking({
+              ...res,
+              replacedBookingId: this.currentBooking?.bookingId,
+            });
+            this.router.navigate(['/payment']);
+          },
+          error: (err) => {
+            this.openFailureAlert(err.error || err.message);
+          },
+        });
     });
   };
 

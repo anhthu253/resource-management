@@ -34,7 +34,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-payment',
   templateUrl: './payment.component.html',
   styleUrl: './payment.component.css',
-  imports: [ReactiveFormsModule, CommonModule, RadioButton, MatButton],
+  imports: [ReactiveFormsModule, CommonModule, RadioButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
