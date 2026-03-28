@@ -19,23 +19,37 @@ public class BookingEventPublisher {
         this.resourceService = resourceService;
     }
 
-    public void publishBookingEvent(Booking booking, MQEventType bookingEventType) throws Exception {
-        User user = booking.getUser();
+    public void publishBookingEvent(Booking currentBooking, Booking previousBooking, MQEventType bookingEventType) throws Exception {
+        User user = currentBooking.getUser();
         List<String> resourceNames = resourceService.getAllResources().stream()
-                .filter(r -> booking.getResourceIds().contains(r.getResourceId()))
+                .filter(r -> currentBooking.getResourceIds().contains(r.getResourceId()))
                 .map(r -> r.getResourceName())
                 .collect(Collectors.toList());
+
         BookingEvent event = BookingEvent.builder()
                 .eventId(UUID.randomUUID().toString())
-                .bookingId(booking.getBookingNumber())
-                .bookingNumber(booking.getBookingNumber())
-                .startTime(booking.getStartedAt())
-                .endTime(booking.getEndedAt())
+                .bookingId(currentBooking.getBookingNumber())
+                .bookingNumber(currentBooking.getBookingNumber())
+                .startTime(currentBooking.getStartedAt())
+                .endTime(currentBooking.getEndedAt())
                 .resourceNames(resourceNames)
-                .amount(booking.getTotalPrice())
+                .amount(currentBooking.getTotalPrice())
                 .bookingEventType(bookingEventType)
                 .userEmail(user.getEmail())
                 .userFullName(user.getFirstName() + " " + user.getLastName()).build();
+
+        if(previousBooking != null){
+            List<String> previousResourceNames = resourceService.getAllResources().stream()
+                    .filter(r -> previousBooking.getResourceIds().contains(r.getResourceId()))
+                    .map(r -> r.getResourceName())
+                    .collect(Collectors.toList());
+            event.setPreviousBookingNumber(previousBooking.getBookingNumber());
+            event.setPreviousStartTime(previousBooking.getStartedAt());
+            event.setPreviousEndTime(previousBooking.getEndedAt());
+            event.setPreviousResourceNames(previousResourceNames);
+            event.setPreviousAmount(previousBooking.getTotalPrice());
+        }
+
         rabbitTemplate.convertAndSend(
                 RabbitConfig.BOOKING_EXCHANGE,
                 event.getBookingEventType().toString(),

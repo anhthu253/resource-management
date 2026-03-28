@@ -25,7 +25,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("Select b from Booking b where b.user.id = :userId and b.bookingStatus = BookingStatus.PENDING_CONFIRMATION")
     List<Booking> getPendingBookingsByUserId(Long userId);
     Optional<Booking> findByPayment(Payment payment);
-    Optional<Booking> findByBookingGroupIdAndBookingStatus(UUID bookingGroupId, BookingStatus bookingStatus);
+    @Query("Select b from Booking b where b.bookingGroupId = :bookingGroupId and b.bookingStatus = BookingStatus.REPLACED order by b.createdAt desc limit 1")
+    Optional<Booking> findPreviousBooking(@Param("bookingGroupId") UUID bookingGroupId);
+    @Query("Select b from Booking b where b.bookingId != :bookingId and b.bookingGroupId = :bookingGroupId and b.bookingStatus = BookingStatus.PENDING_CONFIRMATION")
+    List<Booking> findPendingBookings(@Param("bookingId") Long bookingId, @Param("bookingGroupId") UUID bookingGroupId, @Param("bookingStatus") BookingStatus bookingStatus);
     List<Booking> findByBookingStatusAndExpiredAtBefore(BookingStatus bookingStatus, LocalDateTime time);
     @Query("SELECT nextval('booking_number_seq')")
     Long getBookingSequence();

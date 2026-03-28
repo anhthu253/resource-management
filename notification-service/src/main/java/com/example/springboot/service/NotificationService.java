@@ -34,6 +34,59 @@ public class NotificationService {
         }
 
     }
+
+    @RabbitListener(queues = "booking.failed.queue")
+    public void handleBookingFailed(BookingEvent event) {
+        String to = event.getUserEmail();
+        Context context = createBookingEmailContext(event);
+        String htmlContent = templateEngine.process("booking-failed", context);
+        NotificationEmail notificationEmail = createNotificationEmail(to, "Booking Failed", htmlContent);
+        try{
+            emailService.sendEmail(notificationEmail);
+        }
+        catch (Exception e){
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send email of failed booking to " + event.getUserEmail() + " due to: ", cause);
+        }
+    }
+    @RabbitListener(queues = "modify.succeeded.queue")
+    public void handleBookingModified(BookingEvent event) {
+        String to = event.getUserEmail();
+        Context context = createBookingEmailContext(event);
+        String htmlContent = templateEngine.process("booking-modified", context);
+        NotificationEmail notificationEmail = createNotificationEmail(to, "Booking Modification Confirmation", htmlContent);
+        try{
+            emailService.sendEmail(notificationEmail);
+        }
+        catch (Exception e){
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send confirmation of booking modification to " + event.getUserEmail() + " due to: ", cause);
+        }
+    }
+
+    @RabbitListener(queues = "modify.failed.queue")
+    public void handleBookingModifyFailed(BookingEvent event) {
+        String to = event.getUserEmail();
+        Context context = createBookingEmailContext(event);
+        String htmlContent = templateEngine.process("booking-modify-failed", context);
+        NotificationEmail notificationEmail = createNotificationEmail(to, "Booking Modification Failed", htmlContent);
+        try{
+            emailService.sendEmail(notificationEmail);
+        }
+        catch (Exception e){
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send email of failed modified booking to " + event.getUserEmail() + " due to: ", cause);
+        }
+    }
     @RabbitListener(queues = "cancel.succeeded.queue")
     public void handleBookingCanceled(BookingEvent event){
         String to = event.getUserEmail();
@@ -70,7 +123,7 @@ public class NotificationService {
         }
     }
 
-    @RabbitListener(queues = "modify.succeeded.queue")
+    @RabbitListener(queues = "refund.succeeded.queue")
     public void handleBookingRefunded(BookingEvent event){
         String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
@@ -87,7 +140,7 @@ public class NotificationService {
             log.error("Cannot send email of a refunded booking to " + event.getUserEmail() + " due to: ", cause);
         }
     }
-    @RabbitListener(queues = "modify.failed.queue")
+    @RabbitListener(queues = "refund.failed.queue")
     public void handleBookingRefundFailed(BookingEvent event){
         String to = event.getUserEmail();
         Context context = createBookingEmailContext(event);
@@ -113,6 +166,11 @@ public class NotificationService {
         context.setVariable("startDate",event.getStartTime());
         context.setVariable("endDate",event.getEndTime());
         context.setVariable("totalPrice",event.getAmount() + " EUR");
+        context.setVariable("previousBookingNumber", event.getPreviousBookingNumber());
+        context.setVariable("previousStartDate", event.getPreviousStartTime());
+        context.setVariable("previousEndDate", event.getPreviousEndTime());
+        context.setVariable("previousResources", event.getPreviousResourceNames());
+        context.setVariable("previousTotalPrice", event.getPreviousAmount() != null ? event.getPreviousAmount() + " EUR" : null);
         return context;
     }
 

@@ -33,44 +33,65 @@ public class BookingService {
         this.bookingEventPublisher = bookingEventPublisher;
     }
     @Transactional
-    public Booking createBooking(Booking booking) {
+    public Booking createBooking(Booking booking) throws Exception {
+        Booking previousBooking = null;
         if(booking.getBookingGroupId() == null){
             booking.setBookingGroupId(UUID.randomUUID());
+        }
+        else{
+            previousBooking = bookingRepository.findPreviousBooking(booking.getBookingGroupId()).orElse(null);
         }
         booking.setBookingStatus(BookingStatus.PENDING_CONFIRMATION);
         booking.setCreatedAt(LocalDateTime.now());
         booking.setExpiredAt(LocalDateTime.now().plusMinutes(15)); //users have 15 minutes to pay
         booking.setBookingNumber(generateBookingNumber());
-        Payment payment = paymentService.createPayment(booking);
-        booking.setPayment(payment);
-        booking = this.bookingRepository.save(booking);
-        return booking;
-    }
-    public void updateBooking(long bookingId) throws Exception{
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-
         try{
-            booking.setBookingStatus(BookingStatus.REPLACED);
-            booking.setModifiedAt(LocalDateTime.now());
-            bookingRepository.save(booking);
-
+            Payment payment = paymentService.createPayment(booking);
+            booking.setPayment(payment);
+            booking = this.bookingRepository.save(booking);
             try{
-                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFIED);
+                if(previousBooking == null) {
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_CREATED);
+                }
+                else{
+                    bookingEventPublisher.publishBookingEvent(booking, previousBooking, MQEventType.BOOKING_MODIFIED);
+                }
             }
             catch(Exception ex){
-                log.error("Unsuccessfully deliver booking modified event to RabbitMQ.");
+                log.error("Unsuccessfully deliver booking created/modified event to RabbitMQ.");
             }
+            return booking;
+
         }
         catch (Exception e){
+            if(previousBooking != null){
+                previousBooking.setBookingStatus(BookingStatus.CONFIRMED); //reverse to active booking
+            }
             try{
-                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_MODIFY_FAILED);
+                if(previousBooking == null) {
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_FAILED);
+                }
+                else {
+                    bookingEventPublisher.publishBookingEvent(booking, previousBooking, MQEventType.BOOKING_MODIFY_FAILED);
+                }
             }
             catch(Exception ex){
-                log.error("Unsuccessfully deliver failed modify event to RabbitMQ.");
+                log.error("Unsuccessfully deliver failed booking created/modified event to RabbitMQ.");
             }
             throw new Exception(e);
         }
 
+    }
+    public void updateBooking(long bookingId) throws Exception{
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+        try{
+            booking.setBookingStatus(BookingStatus.REPLACED);
+            booking.setModifiedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+        }
+        catch (Exception e){
+            throw new Exception(e);
+        }
     }
     public void cancelBooking (long bookingId) throws Exception {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
@@ -78,7 +99,7 @@ public class BookingService {
         try{
             bookingRepository.save(booking);
             try{
-                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CANCELED);
+                bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_CANCELED);
             }
             catch(Exception ex){
                 log.error("Unsuccessfully deliver booking canceled event to RabbitMQ.");
@@ -87,7 +108,7 @@ public class BookingService {
         catch (Exception e){
             booking.setBookingStatus(BookingStatus.CONFIRMED); //reverse to active booking
             try{
-                bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CANCEL_FAILED);
+                bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_CANCEL_FAILED);
             }
             catch(Exception ex){
                 log.error("Unsuccessfully deliver failed cancel event to RabbitMQ.");

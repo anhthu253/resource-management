@@ -47,6 +47,25 @@ public class RabbitConfig {
     public Queue modifyFailedQueue() {
         return new Queue("modify.failed.queue");
     }
+    @Bean
+    public Queue refundSuccessQueue() {
+        return new Queue("refund.succeeded.queue");
+    }
+
+    @Bean
+    public Queue refundFailedQueue() {
+        return new Queue("refund.failed.queue");
+    }
+
+    @Bean
+    public Queue paymentSuccessQueue() {
+        return new Queue("payment.succeeded.queue");
+    }
+
+    @Bean
+    public Queue paymentFailedQueue() {
+        return new Queue("payment.failed.queue");
+    }
 
     // Bindings
     @Bean
@@ -62,17 +81,34 @@ public class RabbitConfig {
         return BindingBuilder.bind(bookingCancelledQueue).to(bookingExchange).with("BOOKING_CANCELED");
     }
     @Bean
-    public Binding cancelFailedBinding(Queue cancelFailedQueue, TopicExchange bookingExchange) {
+    public Binding bookingCancelFailedBinding(Queue cancelFailedQueue, TopicExchange bookingExchange) {
         return BindingBuilder.bind(cancelFailedQueue).to(bookingExchange).with("BOOKING_CANCEL_FAILED");
     }
     @Bean
     public Binding bookingModifiedBinding(Queue modifySuccessQueue, TopicExchange bookingExchange) {
         return BindingBuilder.bind(modifySuccessQueue).to(bookingExchange).with("BOOKING_MODIFIED");
     }
+    @Bean
+    public Binding bookingModifyFailedBinding(Queue modifySuccessQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(modifySuccessQueue).to(bookingExchange).with("BOOKING_MODIFY_FAILED");
+    }
+    @Bean
+    public Binding bookingRefundFailedBinding(Queue refundFailedQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(refundFailedQueue).to(bookingExchange).with("BOOKING_REFUND_FAILED");
+    }
 
     @Bean
-    public Binding modifyFailedBinding(Queue modifyFailedQueue, TopicExchange bookingExchange) {
-        return BindingBuilder.bind(modifyFailedQueue).to(bookingExchange).with("BOOKING_MODIFY_FAILED");
+    public Binding bookingRefundedBinding(Queue refundSuccessQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(refundSuccessQueue).to(bookingExchange).with("BOOKING_REFUNDED");
+    }
+    @Bean
+    public Binding modifyPaymentFailedBinding(Queue paymentFailedQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(paymentFailedQueue).to(bookingExchange).with("BOOKING_PAYMENT_FAILED");
+    }
+
+    @Bean
+    public Binding modifyPaymentSucceededBinding(Queue paymentSuccessQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(paymentSuccessQueue).to(bookingExchange).with("BOOKING_PAYMENT_SUCCEEDED");
     }
 
     // JSON converter for all queues

@@ -77,7 +77,12 @@
           'status-cancelled': booking.bookingStatus === 'REPLACED' && (booking.refundStatus === 'FAILED' || booking.refundStatus === 'NOT_ELIGIBLE'||booking.refundStatus === 'NONE')
         }">
           @if(booking.bookingStatus === 'REPLACED'){
-            {{booking.refundStatus.replace('NOT_ELIGIBLE','REFUND FAILED').replace('NONE','REFUND FAILED').replace('FAILED','REFUND FAILED').replace('PENDING','REFUND PENDING')}}
+            @if(booking.refundStatus === 'NOT_ELIGIBLE' || booking.refundStatus === 'NONE'){
+              REFUND FAILED
+            }
+            @else{
+              REFUND {{booking.refundStatus}}
+            }
           }
           @else{
             {{booking.bookingStatus}}

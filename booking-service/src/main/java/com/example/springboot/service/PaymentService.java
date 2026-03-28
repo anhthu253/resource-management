@@ -18,8 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 public class PaymentService {
@@ -87,7 +90,7 @@ public class PaymentService {
                 booking.setBookingStatus(BookingStatus.CONFIRMED);
                 bookingRepository.save(booking);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_CREATED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_PAYMENT_SUCCEEDED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish created booking event to RabbitMQ");
@@ -106,7 +109,7 @@ public class PaymentService {
                 payment.setPaymentStatus(PaymentStatus.FAILED);
                 paymentRepository.save(payment);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_PAYMENT_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish failed booking event to RabbitMQ");
@@ -125,7 +128,7 @@ public class PaymentService {
                 statusUpdateService.notifyUpdate(update);
                 statusUpdateService.complete(booking.getBookingId());
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_REFUND_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish refund failed event to RabbitMQ");
@@ -150,7 +153,7 @@ public class PaymentService {
                statusUpdateService.notifyUpdate(update);
                statusUpdateService.complete(booking.getBookingId());
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUNDED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_REFUNDED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish booking modified event to RabbitMQ");
@@ -161,11 +164,12 @@ public class PaymentService {
     public ResponseEntity<?> createRefund(long bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
         Payment payment = paymentRepository.findByBookingId(bookingId).orElseThrow();
-        Optional<Booking> unpaidBooking = bookingRepository.findByBookingGroupIdAndBookingStatus(booking.getBookingGroupId(), BookingStatus.PENDING_CONFIRMATION);
-        if(unpaidBooking.isPresent()){
+        List<Booking> unpaidBookings = bookingRepository.findPendingBookings(booking.getBookingId(), booking.getBookingGroupId(), BookingStatus.PENDING_CONFIRMATION);
+        if(unpaidBookings.size()>0){
             payment.setRefundStatus(RefundStatus.NOT_ELIGIBLE);
             paymentRepository.save(payment);
-            return ResponseEntity.ok().body(Map.of("status",RefundStatus.NOT_ELIGIBLE, "message", String.format("You have a pending booking (No. %s). Please complete the payment in the Pending Bookings tab before requesting a refund. If it has expired, create a new booking from this one using the Edit button (do not use the New Booking tab, as it will not be linked). The refund can only be processed after the new booking has been paid.", unpaidBooking.get().getBookingNumber())));
+            String allUnpaidBookingNr = unpaidBookings.stream().map(b -> b.getBookingNumber()).collect(Collectors.joining(", "));
+            return ResponseEntity.ok().body(Map.of("status",RefundStatus.NOT_ELIGIBLE, "message", String.format("You have a pending booking (No. %s). Please complete the payment in the Pending Bookings tab before requesting a refund. If it has expired, create a new booking from this one using the Edit button (do not use the New Booking tab, as it will not be linked). The refund can only be processed after the new booking has been paid.", allUnpaidBookingNr)));
         }
         try {
             payment.setRefundStatus(RefundStatus.PENDING);
@@ -186,7 +190,7 @@ public class PaymentService {
                 statusUpdateService.notifyUpdate(update);
                 statusUpdateService.complete(bookingId);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_REFUND_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");
@@ -199,7 +203,7 @@ public class PaymentService {
                 update = new StatusUpdateDto(bookingId, RefundStatus.FAILED, "We couldn’t create your refund request. Please try again.");
                 statusUpdateService.notifyUpdate(update);
                 try{
-                    bookingEventPublisher.publishBookingEvent(booking, MQEventType.BOOKING_REFUND_FAILED);
+                    bookingEventPublisher.publishBookingEvent(booking, null, MQEventType.BOOKING_REFUND_FAILED);
                 }
                 catch(Exception e){
                     log.error("Unsucessfully publish modify failed event to RabbitMQ");

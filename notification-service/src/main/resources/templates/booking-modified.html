@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Modification Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { color: #5bc0de; }
+        .details { background: #f9f9f9; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        ul { margin-top: 5px; }
+        .highlight { font-weight: bold; }
+        .section { margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Booking Modification Confirmation</h2>
+
+    <p>Hello <span th:text="${customerName}"></span>,</p>
+
+    <p>
+        Your booking <strong th:text="${bookingNumber}"></strong> has been successfully modified.
+    </p>
+
+    <!-- NEW BOOKING -->
+    <div class="details">
+        <p class="highlight">Updated booking details:</p>
+
+        <p>
+            <span class="highlight">Period:</span>
+            <span th:text="${startDate}"></span> to
+            <span th:text="${endDate}"></span>
+        </p>
+
+        <p class="highlight">Resources:</p>
+        <ul>
+            <li th:each="resource : ${resources}" th:text="${resource}"></li>
+        </ul>
+
+        <p th:if="${totalPrice != null}">
+            <span class="highlight">Total price:</span>
+            <span th:text="${totalPrice}"></span>
+        </p>
+    </div>
+
+    <!-- PREVIOUS BOOKING -->
+    <div class="section" th:if="${previousStartDate != null}">
+        <p class="highlight">Previous booking details:</p>
+
+        <p>
+            <span th:text="${previousStartDate}"></span> to
+            <span th:text="${previousEndDate}"></span>
+        </p>
+
+        <p class="highlight">Resources:</p>
+        <ul>
+            <li th:each="resource : ${previousResources}" th:text="${resource}"></li>
+        </ul>
+
+        <p th:if="${previousTotalPrice != null}">
+            <span class="highlight">Total price:</span>
+            <span th:text="${previousTotalPrice}"></span>
+        </p>
+    </div>
+
+    <p>
+        The refund for your previous booking will be processed separately.
+        A confirmation email regarding its status will be sent to you shortly.
+    </p>
+
+    <p th:if="${additionalInfo != null}">
+        <strong>Note:</strong> <span th:text="${additionalInfo}"></span>
+    </p>
+
+    <p>
+        If you have any questions, please contact us at
+        <a href="mailto:support@example.com">support@example.com</a>.
+    </p>
+
+    <p>Thank you,<br/>The Booking Team</p>
+</div>
+</body>
+</html>

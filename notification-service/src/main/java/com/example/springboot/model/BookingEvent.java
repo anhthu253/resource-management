@@ -21,6 +21,11 @@ public class BookingEvent {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private BigDecimal amount;
+    private String previousBookingNumber;
+    private List<String> previousResourceNames;
+    private LocalDateTime previousStartTime;
+    private LocalDateTime previousEndTime;
+    private BigDecimal previousAmount;
     private MQEventType bookingEventType;
     private String userEmail;
     private String userFullName;

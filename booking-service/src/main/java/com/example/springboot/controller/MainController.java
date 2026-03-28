@@ -68,10 +68,13 @@ public class MainController {
             Booking bookingRequest = bookingMapper.mapBookingDtoToBooking(bookingRequestDto);
             Booking booking = this.bookingService.createBooking(bookingRequest);
             BookingDto result = this.bookingMapper.mapBookingToBookingDto(booking);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            return ResponseEntity.ok(result);
+        }
+        catch(DataIntegrityViolationException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create booking due to database constraint violation");
         }
         catch(Exception ex){
-            return new ResponseEntity<>("Failed to create booking", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create booking");
         }
     }
     @PostMapping("/total-price")
