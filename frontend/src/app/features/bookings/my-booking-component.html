@@ -1,73 +1,96 @@
-<mat-spinner *ngIf="isLoading"></mat-spinner>
-<div class="container">
-  <div *ngFor="let booking of bookings; let i = index" class="booking-card">
-    <div class="booking-header">
-      <div class="booking-id">
-        Booking {{ booking.bookingNumber }}
-      </div>
-
-      @if(!booking.isPastBooking){
-      <div class="booking-actions">
-        @if(booking?.bookingStatus==='CONFIRMED' || booking?.refundStatus==='NOT_ELIGIBLE' || booking?.refundStatus==='NONE'){
-          <button mat-icon-button (click)="modifyBooking(booking)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
-            <mat-icon>close</mat-icon>
-          </button>
-        }
-        @else if(booking?.refundStatus == 'PENDING'){
-          <button mat-icon-button (click)="getUpdatedRefundStatus(booking.bookingId)">
-            <mat-icon>refresh</mat-icon>
-          </button>
-        }
-      </div>
-      }
+<div class="page-container">
+  <div class="toolbar">
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Search bookings (booking number, status...)"
+        [(ngModel)]="searchTerm"
+        (input)="filterBookings()"
+      />
+      <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-    <div class="booking-body">
-      <div class="booking-row resources-block">
-        <mat-icon>inventory_2</mat-icon>
+    <button class="sort-btn" (click)="toggleSort()">
+      <mat-icon>
+        {{ sortDirection === 'desc' ? 'arrow_downward' : 'arrow_upward' }}
+      </mat-icon>
+      <span>Created</span>
+    </button>
+  </div>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div class="container">
+    <div *ngFor="let booking of bookings; let i = index" class="booking-card">
+      <div class="booking-header">
+        <div class="booking-id">
+          Booking {{ booking.bookingNumber }}
+        </div>
 
-        <div class="resources-list">
-          @for (resource of booking.resources; track resource.resourceId){
-          <div>
-            {{ resource.resourceName }}
-          </div>
+        @if(!booking.isPastBooking){
+        <div class="booking-actions">
+          @if(booking?.bookingStatus==='CONFIRMED' || booking?.refundStatus==='NOT_ELIGIBLE' || booking?.refundStatus==='NONE'){
+            <button mat-icon-button (click)="modifyBooking(booking)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+          @else if(booking?.refundStatus == 'PENDING'){
+            <button mat-icon-button (click)="getUpdatedRefundStatus(booking.bookingId)">
+              <mat-icon>refresh</mat-icon>
+            </button>
+          }
+        </div>
         }
+      </div>
+      <div class="booking-body">
+        <div class="booking-row resources-block">
+          <mat-icon>inventory_2</mat-icon>
+
+          <div class="resources-list">
+            @for (resource of booking.resources; track resource.resourceId){
+            <div>
+              {{ resource.resourceName }}
+            </div>
+          }
+          </div>
+        </div>
+        <div class="booking-row">
+          <mat-icon>event_available</mat-icon>
+          {{ booking.startedAt | date: 'MMM d, HH:mm'}} → {{ booking.endedAt | date: 'MMM d, HH:mm'}}
+        </div>
+        <div class="booking-row">
+          <mat-icon>money</mat-icon>
+          <span class="booking-price">{{ booking.totalPrice | currency }}</span>
+        </div>
+        <div class="booking-row">
+          <mat-icon>schedule</mat-icon>
+          created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
         </div>
       </div>
-      <div class="booking-row">
-        <mat-icon>event_available</mat-icon>
-        {{ booking.startedAt | date: 'MMM d, HH:mm'}} → {{ booking.endedAt | date: 'MMM d, HH:mm'}}
-      </div>
-      <div class="booking-row">
-        <mat-icon>money</mat-icon>
-        <span class="booking-price">{{ booking.totalPrice | currency }}</span>
-      </div>
-      <div class="booking-row">
-        <mat-icon>schedule</mat-icon>
-        created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
-      </div>
-    </div>
-    <div class="booking-footer">
-      <span class="booking-status" [ngClass]="{
-        'status-confirmed': booking.bookingStatus === 'CONFIRMED'||booking.refundStatus === 'REFUNDED',
-        'status-pending': booking.refundStatus === 'PENDING',
-        'status-cancelled': booking.bookingStatus === 'REPLACED' && (booking.refundStatus === 'FAILED' || booking.refundStatus === 'NOT_ELIGIBLE'||booking.refundStatus === 'NONE')
-      }">
-        @if(booking.bookingStatus === 'REPLACED'){
-          {{booking.refundStatus.replace('NOT_ELIGIBLE','REFUND FAILED').replace('NONE','REFUND FAILED').replace('FAILED','REFUND FAILED').replace('PENDING','REFUND PENDING')}}
-        }
-        @else{
-          {{booking.bookingStatus}}
-        }
-        </span>
-        <span>
-          @if(booking.bookingStatus === "REPLACED" && (booking.refundStatus === 'FAILED'||booking.refundStatus === "NOT_ELIGIBLE"||booking.refundStatus === "NONE")){
-            <button class="primary-btn" (click)="requestRefund(booking)">Request refund</button>
+      <div class="booking-footer">
+        <span class="booking-status" [ngClass]="{
+          'status-confirmed': booking.bookingStatus === 'CONFIRMED'||booking.refundStatus === 'REFUNDED',
+          'status-pending': booking.refundStatus === 'PENDING',
+          'status-cancelled': booking.bookingStatus === 'REPLACED' && (booking.refundStatus === 'FAILED' || booking.refundStatus === 'NOT_ELIGIBLE'||booking.refundStatus === 'NONE')
+        }">
+          @if(booking.bookingStatus === 'REPLACED'){
+            {{booking.refundStatus.replace('NOT_ELIGIBLE','REFUND FAILED').replace('NONE','REFUND FAILED').replace('FAILED','REFUND FAILED').replace('PENDING','REFUND PENDING')}}
           }
-        </span>
+          @else{
+            {{booking.bookingStatus}}
+          }
+          </span>
+          <span>
+            @if(booking.bookingStatus === "REPLACED" && (booking.refundStatus === 'FAILED'||booking.refundStatus === "NOT_ELIGIBLE"||booking.refundStatus === "NONE")){
+              <button class="primary-btn" (click)="requestRefund(booking)">Request refund</button>
+            }
+          </span>
+    </div>
+  </div>
+  <div class="empty-state">
+    {{message}}
   </div>
 </div>
-
-<p>{{message}}</p>

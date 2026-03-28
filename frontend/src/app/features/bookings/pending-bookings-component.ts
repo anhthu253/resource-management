@@ -17,6 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 import { BookingStateService } from '../../core/services/booking.state.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
@@ -24,12 +25,15 @@ import { BookingStateService } from '../../core/services/booking.state.service';
   templateUrl: './pending-bookings-component.html',
   styleUrl: './pending-bookings-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatIcon, MatSpinner],
+  imports: [CommonModule, MatIcon, MatSpinner, FormsModule],
 })
 export class PendingBookingsComponent implements OnInit {
   bookings: BookingDto[] = [];
+  allBookings: BookingDto[] = [];
   isLoading = false;
   message = '';
+  searchTerm = '';
+  sortDirection: 'asc' | 'desc' = 'desc';
   private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,
@@ -71,6 +75,30 @@ export class PendingBookingsComponent implements OnInit {
     this.bookingStateService.setBooking(booking);
     this.router.navigate(['/payment']);
   };
+
+  filterBookings = () => {
+    const searchTerm = this.searchTerm.toLowerCase();
+    this.bookings = this.allBookings.filter((booking) => {
+      return booking.bookingNumber.toLowerCase().includes(searchTerm);
+    });
+    this.cdr.detectChanges();
+  };
+
+  clearSearch = () => {
+    this.searchTerm = '';
+    this.bookings = this.allBookings;
+  };
+
+  toggleSort = () => {
+    this.sortDirection = this.sortDirection === 'desc' ? 'asc' : 'desc';
+    this.bookings = [...this.bookings].sort((a, b) => {
+      const dateA = new Date(a.createdAt || '').getTime();
+      const dateB = new Date(b.createdAt || '').getTime();
+      return this.sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+    this.cdr.detectChanges();
+  };
+
   ngOnInit(): void {
     const userId = this.userService.getUser()?.userId;
     if (userId) {
@@ -81,9 +109,10 @@ export class PendingBookingsComponent implements OnInit {
         .subscribe({
           next: (res) => {
             this.isLoading = false;
-            if (!res.length) this.message = 'You have no pending booking.';
+            if (!res.length) this.message = 'No pending booking found or they are expired!';
             else this.message = '';
-            this.bookings = res;
+            this.allBookings = res;
+            this.bookings = this.allBookings;
             this.cdr.detectChanges();
           },
           error: (err) => {

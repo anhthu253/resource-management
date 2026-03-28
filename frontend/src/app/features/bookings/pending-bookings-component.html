@@ -1,45 +1,68 @@
-<mat-spinner *ngIf="isLoading"></mat-spinner>
-<div class="container">
-  <div *ngFor="let booking of bookings; let i = index" class="booking-card">
-    <div class="booking-header">
-      <div class="booking-id">
-        Booking {{ booking.bookingNumber }}
-      </div>
-      <div class="booking-actions">
-        <button mat-icon-button (click)="modifyBooking(booking)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
+<div class="page-container">
+  <div class="toolbar">
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Search bookings (booking number...)"
+        [(ngModel)]="searchTerm"
+        (input)="filterBookings()"
+      />
+      <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-    <div class="booking-body">
-      <div class="booking-row resources-block">
-        <mat-icon>inventory_2</mat-icon>
-
-        <div class="resources-list">
-          @for (resource of booking.resources; track resource.resourceId){
-          <div>
-            {{ resource.resourceName }}
-          </div>
-        }
+    <button class="sort-btn" (click)="toggleSort()">
+      <mat-icon>
+        {{ sortDirection === 'desc' ? 'arrow_downward' : 'arrow_upward' }}
+      </mat-icon>
+      <span>Created</span>
+    </button>
+  </div>  
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div class="container">
+    <div *ngFor="let booking of bookings; let i = index" class="booking-card">
+      <div class="booking-header">
+        <div class="booking-id">
+          Booking {{ booking.bookingNumber }}
+        </div>
+        <div class="booking-actions">
+          <button mat-icon-button (click)="modifyBooking(booking)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelBooking(booking.bookingId)">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
       </div>
-      <div class="booking-row">
-        <mat-icon>event_available</mat-icon>
-        {{ booking.startedAt | date: 'MMM d, HH:mm' }} → {{ booking.endedAt | date: 'MMM d, HH:mm' }}
-      </div>
-      <div class="booking-row">
-        <mat-icon>money</mat-icon>
-        <span class="booking-price">{{ booking.totalPrice | currency }}</span>
-      </div>
-      <div class="booking-row">
-        <mat-icon>schedule</mat-icon>
-        created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
+      <div class="booking-body">
+        <div class="booking-row resources-block">
+          <mat-icon>inventory_2</mat-icon>
+
+          <div class="resources-list">
+            @for (resource of booking.resources; track resource.resourceId){
+            <div>
+              {{ resource.resourceName }}
+            </div>
+          }
+          </div>
+        </div>
+        <div class="booking-row">
+          <mat-icon>event_available</mat-icon>
+          {{ booking.startedAt | date: 'MMM d, HH:mm' }} → {{ booking.endedAt | date: 'MMM d, HH:mm' }}
+        </div>
+        <div class="booking-row">
+          <mat-icon>money</mat-icon>
+          <span class="booking-price">{{ booking.totalPrice | currency }}</span>
+        </div>
+        <div class="booking-row">
+          <mat-icon>schedule</mat-icon>
+          created on {{ booking.createdAt | date: 'MMM d, HH:mm' }}
+        </div>
       </div>
     </div>
   </div>
+  <div class="empty-state">
+    {{message}}
+  </div>
 </div>
-
-<p>{{message}}</p>

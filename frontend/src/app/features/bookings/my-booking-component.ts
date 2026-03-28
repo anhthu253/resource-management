@@ -20,6 +20,7 @@ import { NotificationDialog } from '../../core/components/pop-up/notification-co
 import { ConfirmDialog } from '../../core/components/pop-up/confirm-dialog-component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
@@ -27,14 +28,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './my-booking-component.html',
   styleUrl: './my-booking-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatIcon, MatSpinner, MatTooltipModule],
+  imports: [CommonModule, MatIcon, MatSpinner, MatTooltipModule, FormsModule],
 })
 export class MyBookingComponent implements OnInit {
   isLoading = false;
   bookings: (BookingDto & { isPastBooking: boolean })[] = [];
+  allBookings: (BookingDto & { isPastBooking: boolean })[] = [];
+
   message = '';
   today = new Date().toISOString();
+  searchTerm = '';
+  sortDirection: 'asc' | 'desc' = 'desc';
   private destroyRef = inject(DestroyRef);
+
   constructor(
     private router: Router,
     private bookingService: BookingService,
@@ -134,6 +140,33 @@ export class MyBookingComponent implements OnInit {
       });
   };
 
+  filterBookings = () => {
+    const searchTerm = this.searchTerm.toLowerCase();
+    this.bookings = this.allBookings.filter((booking) => {
+      return (
+        booking.bookingNumber.toLowerCase().includes(searchTerm) ||
+        booking.bookingStatus.toLowerCase().includes(searchTerm) ||
+        booking.refundStatus.toLowerCase().includes(searchTerm)
+      );
+    });
+    this.cdr.detectChanges();
+  };
+
+  clearSearch = () => {
+    this.searchTerm = '';
+    this.bookings = this.allBookings;
+  };
+
+  toggleSort = () => {
+    this.sortDirection = this.sortDirection === 'desc' ? 'asc' : 'desc';
+    this.bookings = [...this.bookings].sort((a, b) => {
+      const dateA = new Date(a.createdAt || '').getTime();
+      const dateB = new Date(b.createdAt || '').getTime();
+      return this.sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+    this.cdr.detectChanges();
+  };
+
   ngOnInit(): void {
     this.isLoading = true;
     this.bookingService
@@ -142,15 +175,16 @@ export class MyBookingComponent implements OnInit {
       .subscribe({
         next: (res: BookingDto[]) => {
           this.isLoading = false;
-          if (!res.length) this.message = 'You have no booking confirmed.';
+          if (!res.length) this.message = 'No booking found!';
           else this.message = '';
-          this.bookings = res.map((b) => {
+          this.allBookings = res.map((b) => {
             return {
               ...b,
               isPastBooking:
                 !!b.startedAt && new Date(b.startedAt).getTime() < new Date().getTime(),
             };
           });
+          this.bookings = this.allBookings;
           this.cdr.detectChanges();
         },
         error: (err) => {
