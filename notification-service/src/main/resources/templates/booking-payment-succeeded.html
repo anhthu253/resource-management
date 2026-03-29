@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { color: #5cb85c; }
+        .details { background: #f9f9f9; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+<h2>Payment Confirmation</h2>
+
+<p>Hello <span th:text="${customerName}"></span>,</p>
+
+<p>We are pleased to inform you that your payment has been successfully processed.</p>
+
+<div class="details">
+    <p>Booking number: <strong th:text="${bookingNumber}"></strong></p>
+    <p>Payment amount: <strong th:text="${totalPrice}"></strong></p>
+</div>
+
+<p>Your booking is now fully confirmed. You can proceed with your planned reservation without any further action.</p>
+
+<p>Thank you for choosing us. We look forward to serving you!</p>
+
+</body>
+</html>

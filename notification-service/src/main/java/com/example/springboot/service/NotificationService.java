@@ -123,6 +123,40 @@ public class NotificationService {
         }
     }
 
+    @RabbitListener(queues = "payment.succeeded.queue")
+    public void handleBookingPaymentSuccess(BookingEvent event){
+        String to = event.getUserEmail();
+        Context context = createBookingEmailContext(event);
+        String htmlContent = templateEngine.process("booking-payment-succeeded", context);
+        NotificationEmail notificationEmail = createNotificationEmail(to, "Booking Payment Confirmation", htmlContent);
+        try{
+            emailService.sendEmail(notificationEmail);
+        }
+        catch (Exception e){
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send booking payment confirmation to " + event.getUserEmail() + " due to: ", cause);
+        }
+    }
+    @RabbitListener(queues = "payment.failed.queue")
+    public void handleBookingPaymentFailure(BookingEvent event){
+        String to = event.getUserEmail();
+        Context context = createBookingEmailContext(event);
+        String htmlContent = templateEngine.process("booking-payment-failed", context);
+        NotificationEmail notificationEmail = createNotificationEmail(to, "Booking Payment Failed", htmlContent);
+        try{
+            emailService.sendEmail(notificationEmail);
+        }
+        catch (Exception e){
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            log.error("Cannot send an email of booking payment failed to " + event.getUserEmail() + " due to: ", cause);
+        }
+    }
     @RabbitListener(queues = "refund.succeeded.queue")
     public void handleBookingRefunded(BookingEvent event){
         String to = event.getUserEmail();
