@@ -5,6 +5,7 @@ import com.example.springboot.model.*;
 import com.example.springboot.repository.BookingRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,6 +24,8 @@ public class BookingService {
     private final PaymentService paymentService;
     private final ResourceService resourceService;
     private final BookingEventPublisher bookingEventPublisher;
+    @Value("${booking.expiration.minutes}")
+    private int bookingExpirationMinutes;
 
     public BookingService(BookingRepository bookingRepository,
                           PaymentService paymentService,
@@ -43,7 +46,7 @@ public class BookingService {
         }
         booking.setBookingStatus(BookingStatus.PENDING_CONFIRMATION);
         booking.setCreatedAt(LocalDateTime.now());
-        booking.setExpiredAt(LocalDateTime.now().plusMinutes(15)); //users have 15 minutes to pay
+        booking.setExpiredAt(LocalDateTime.now().plusMinutes(bookingExpirationMinutes)); //users have 15 minutes to pay
         booking.setBookingNumber(generateBookingNumber());
         try{
             Payment payment = paymentService.createPayment(booking);
