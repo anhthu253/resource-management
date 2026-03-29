@@ -34,7 +34,7 @@ public class RabbitMQConfig {
         factory.setMissingQueuesFatal(false);        // don't fail if queue not yet ready
         factory.setDefaultRequeueRejected(true);     // requeue rejected messages
         factory.setConcurrentConsumers(1);           // number of threads consuming
-        factory.setMaxConcurrentConsumers(5);
+        factory.setMaxConcurrentConsumers(1);
         return factory;
     }
 }
