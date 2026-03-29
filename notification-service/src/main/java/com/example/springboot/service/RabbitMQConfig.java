@@ -30,7 +30,11 @@ public class RabbitMQConfig {
 
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(converter);
-
+        factory.setAutoStartup(true);                // start listener automatically
+        factory.setMissingQueuesFatal(false);        // don't fail if queue not yet ready
+        factory.setDefaultRequeueRejected(true);     // requeue rejected messages
+        factory.setConcurrentConsumers(1);           // number of threads consuming
+        factory.setMaxConcurrentConsumers(5);
         return factory;
     }
 }
