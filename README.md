@@ -114,7 +114,7 @@ The user authenticates through the Angular frontend using a username and passwor
 1. User selects one or several resources
 2. Backend calculates the **total price** everytime a resource is selected and show to frontend
 3. The Booking Service:
-       - Creates a booking with `booking.status = PENDING_CONFIRMATION` and `modification.status = NONE`
+       - Creates a booking with `booking.status = PENDING_CONFIRMATION`
        - Creates a payment with status `AWAITING_CUSTOMER_ACTION`
 
 ---
@@ -138,15 +138,15 @@ The user authenticates through the Angular frontend using a username and passwor
 - **Success**
     - `booking.status = CONFIRMED`
     - `payment.status = SUCCEEDED`
-    - A `BOOKING_CANCEL_FAILED` event is published to RabbitMQ
+    - A `BOOKING_PAYMENT_SUCCEEDED` event is published to RabbitMQ
 - **Failure**
-    - `booking.status = PAYMENT_FAILED`
     - `payment.status = FAILED`
-    - A `BOOKING_FAILED` event is published to RabbitMQ
+    - A `BOOKING_PAYMENT_FAILED` event is published to RabbitMQ
 ---
 
 ### 6. Booking History
-All bookings (confirmed or failed) are visible to the user under ** My Bookings** tab.
+- All confirmed bookings are visible to the user under ** My Bookings** tab.
+- All bookings without payment are visible to the user under ** Pending Bookings** tab, where they can select a pending booking and proceed to payment or modification, before the pending booking expires.
 
 ---
 
@@ -165,14 +165,21 @@ The modification process is implemented as a new booking combined with a refund 
 2. User selects **start date**, **end date**, and **resources**
 3. The backend recalculates the total price based on the new selection.
 4. The Booking Service:
-    - Sends a refund request to Stripe for the original booking and sets the payment status to `REFUND_PENDING`
     - Creates a new booking with status `PENDING_CONFIRMATION`
+    - Marks the original booking as `REPLACED`
     - Creates a new payment record with status `AWAITING_CUSTOMER_ACTION`
 
 ---
 
 ### 3. Payment Processing
-The process is identical to the payment flow in the new booking workflow.
+1. User selects a payment method (Card / PayPal)
+2. `stripe.js` validates payment details client-side
+3. Frontend sends a payment request to the Booking Service
+4. The Booking Service:
+    - Creates a Stripe PaymentIntent
+    - Updates payment status to `PROCESSING`
+    - Sends a refund request to Stripe for the original booking and sets the payment status to `REFUND_PENDING`
+5. If user doesn't select any payment for the new booking or no payment request has been sent, the original booking is not eligible for refund until the open booking is paid.
 
 ---
 
@@ -186,15 +193,20 @@ The process is identical to the payment confirmation step in the new booking wor
 2. Booking Service verifies the Charge ID
 3. The final refund state is updated.
 - **Success**
-    - `modification.status = MODIFIED`
-    - `payment.status = REFUNDED`
-    - A `BOOKING_MODIFIED` event is published to RabbitMQ
+    - `payment.refundStatus = REFUNDED`
+    - A `BOOKING_REFUNDED` event is published to RabbitMQ
 - **Failure**
-    - `modification.status = MODIFY_FAILED`
-    - `payment.status = REFUND_FAILED`
-    - A `BOOKING_MODIFY_FAILED` event is published to RabbitMQ
+    - `payment.refundStatus = FAILED`
+    - A `BOOKING_REFUND_FAILED` event is published to RabbitMQ
 
 ---
+
+### 6. Booking History
+- Both the original and modified bookings are visible to the user under ** My Bookings** tab.
+- The modified booking shows the status `CONFIRMED`
+- The original booking shows the status `REFUNDED`, `REFUNDED FAILED` or `REFUND PENDING` depending on the refund status.
+- For replaced bookings with refund status = `PENDING`, user can click on the refresh button next to the booking to get refund status updates.
+- For replaced bookings with refund status = `FAILED`, user can click on the request refund button next to the booking to trigger a refund retry. Status of the retry will be updated in real time via SSE.
 
 ## Booking Cancellation
 
@@ -214,36 +226,13 @@ Cancellation events are published through RabbitMQ to ensure that downstream ser
 
 The platform includes several mechanisms to ensure **reliability, consistency, and fault tolerance** in a distributed environment.
 
-### Stripe Webhook Reliability
+### Stripe Webhook Integration
 
-Payment confirmation does not rely solely on frontend responses.
-Instead, the system uses **Stripe webhooks** to receive the final payment result.
+Payment confirmation does not rely solely on frontend responses. Instead, the system uses **Stripe webhooks** to receive the final payment result.
 
-This ensures that booking states are updated correctly even if:
-
-* the user closes the browser
-* the frontend loses connection
-* a network interruption occurs during payment
+Based on the webhook event, the Booking Service updates the payment and refund status accordingly and publishes events to RabbitMQ. Additionally, refund status update are pushed to a reactive stream, which enables real-time frontend updates via Server-Sent Events (SSE).
 
 Webhook events are verified using the **Stripe signature** before being processed.
-
----
-
-### Asynchronous Refund Retry Mechanism
-
-Refund requests may occasionally fail due to:
-
-* temporary Stripe API issues
-* network interruptions
-* transient system errors
-
-To handle this, the Booking Service implements an **asynchronous retry mechanism**:
-
-1. Failed refunds are marked with status `REFUND_FAILED`
-2. A background task periodically retries these refunds
-3. The frontend receives updates via **Server-Sent Events (SSE)**
-
-This ensures that refund operations eventually reach a **consistent final state**.
 
 ---
 
@@ -252,6 +241,7 @@ This ensures that refund operations eventually reach a **consistent final state*
 The system uses **RabbitMQ** to publish events related to:
 
 * booking creation
+* booking modification
 * payment success or failure
 * refund success or failure
 
@@ -262,6 +252,10 @@ This **event-driven approach** provides several advantages:
 * loose coupling between services
 * improved scalability
 * easier extension for additional notification channels (e.g., SMS, push notifications)
+
+The Notification Service implements a **retry mechanism** for failed email notifications.
+
+Notification DB maintains a record of all email attempts, allowing for monitoring and troubleshooting of notification issues.
 
 ---
 
@@ -319,7 +313,7 @@ Each service connects to its respective database using environment variables.
 
 - **RabbitMQ** hosted on **CloudAMQP**
 - Used for event-driven communication between booking and notification services:
-    - Booking events (confirmation, mofification, cancellation)
+    - Booking events (confirmation, modification, cancellation, refund)
 
 ---
 
@@ -346,14 +340,6 @@ Each service connects to its respective database using environment variables.
 
 ---
 
-## Design Decisions & Trade-offs
-
-- Database-per-service architecture to enforce clear service boundaries
-- Hybrid communication model: synchronous REST for service queries and RabbitMQ for event-driven messaging
-- Availability logic centralized in the Booking Service to avoid cross-service booking conflicts
-- Webhook-based payment confirmation to ensure reliable payment state updates
-
----
 ## Future Improvements
 
 The business rules implemented in the platform are designed to be adaptable.
