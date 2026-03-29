@@ -33,7 +33,7 @@ export class PendingBookingsComponent implements OnInit {
   isLoading = false;
   message = '';
   searchTerm = '';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirection: 'asc' | 'desc' = 'asc';
   private destroyRef = inject(DestroyRef);
   constructor(
     private router: Router,

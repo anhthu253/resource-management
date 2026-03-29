@@ -38,7 +38,7 @@ export class MyBookingComponent implements OnInit {
   message = '';
   today = new Date().toISOString();
   searchTerm = '';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirection: 'asc' | 'desc' = 'asc';
   private destroyRef = inject(DestroyRef);
 
   constructor(
