@@ -81,7 +81,12 @@
               REFUND FAILED
             }
             @else{
-              REFUND {{booking.refundStatus}}
+              @if(booking.refundStatus === 'REFUNDED'){
+                {{booking.refundStatus}}
+              }
+              @else{
+                REFUND {{booking.refundStatus}}
+              }
             }
           }
           @else{
