@@ -159,7 +159,7 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     const booking = this.bookingStateService.getBooking();
-    if (!booking || !booking.bookingGroupId || !booking.paymentId) return;
+    if (!booking || !booking.bookingId || !booking.paymentId) return;
     this.paymentIntent.bookingId = booking.bookingId;
     this.paymentIntent.paymentId = booking.paymentId;
     this.paymentIntent.paymentMethodId = paymentMethod?.id;
